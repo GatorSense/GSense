@@ -12,6 +12,7 @@ setup(
         'scikit-image',
         'transformers',
         'qtpy',
+        'pyqt5',
         'pillow',
         'spectral',
     ],
