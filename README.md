@@ -19,7 +19,6 @@ The tool provides functionality to load a batch of images (hyperspectral, multis
 
    ```bash
    git clone https://github.com/GatorSense/GSense.git
-   cd GSense
    ```
 
 2. Set Up a Virtual Environment (Recommended)
@@ -42,6 +41,7 @@ The tool provides functionality to load a batch of images (hyperspectral, multis
 3. Install the core dependencies:
 
    ```bash
+   cd GSense
    pip install .
    ```
 
@@ -65,7 +65,7 @@ The tool provides functionality to load a batch of images (hyperspectral, multis
 
 GSense supports Vit-h, Vit-b SAM backbones and uses the hugging face transformers library. Downloading model checkpoints for default Vit-h and Vit-b weights is not necessary.
 
-To use a model checkpoint obtained from fine-tuning SAM with peanut and sweetcorn [root images](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/MAYDHT), download the custom checkpoint from the link below and move it to the 'ckpt' folder.
+To use a model checkpoint obtained from fine-tuning SAM with peanut and sweetcorn [root images](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/MAYDHT), download the custom checkpoint from below and move it to the 'ckpt' folder.
 
 [Custom model checkpoint](https://uflorida-my.sharepoint.com/:u:/g/personal/ma_naikodi_ufl_edu/EQPiLVyRX3JJjba-COypQuYBItpvAA23xR4QWx3ZmqxI6A?e=llgAXU)
 
