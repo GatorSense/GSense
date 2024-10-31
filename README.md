@@ -61,6 +61,14 @@ The tool provides functionality to load a batch of images (hyperspectral, multis
 
 ## Usage
 
+### Download custom model checkpoint for root segmentation and move to the 'ckpt' folder (Optional)
+
+GSense supports Vit-h, Vit-b SAM backbones and uses the hugging face transformers library. Downloading model checkpoints for default Vit-h and Vit-b weights is not necessary.
+
+To use a model checkpoint obtained from fine-tuning SAM with peanut and sweetcorn [root images](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/MAYDHT), download the custom checkpoint from below and move it to the 'ckpt' folder.
+
+[Custom model checkpoint](https://uflorida-my.sharepoint.com/:u:/g/personal/ma_naikodi_ufl_edu/EQPiLVyRX3JJjba-COypQuYBItpvAA23xR4QWx3ZmqxI6A?e=llgAXU)
+
 ### Running the Application
 
 After installation, you can run the application using the following command:
