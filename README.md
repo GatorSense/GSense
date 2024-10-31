@@ -18,7 +18,7 @@ The tool provides functionality to load a batch of images (hyperspectral, multis
 1. Clone the repository and navigate into it:
 
    ```bash
-   git clone https://github.com/yourusername/GSense
+   git clone https://github.com/GatorSense/GSense.git
    cd GSense
    ```
 
