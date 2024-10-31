@@ -25,7 +25,7 @@ setup(
     },
     author='Ayesha Naikodi',
     author_email='ma.naikodi@ufl.edu',
-    description='A Napari-based tool for hyperspectral image analysis and segmentation',
+    description='A Napari-based tool for hyperspectral image indexing, segmentation and annotation',
     keywords='hyperspectral image analysis segmentation',
     url='https://github.com/GatorSense/GSense',
     classifiers=[
