@@ -15,7 +15,7 @@ The tool provides functionality to load a batch of images (hyperspectral, multis
 
 ## Installation
 
-1. Clone the repository and navigate into it:
+1. Clone the repository:
 
    ```bash
    git clone https://github.com/GatorSense/GSense.git
@@ -38,7 +38,7 @@ The tool provides functionality to load a batch of images (hyperspectral, multis
    conda activate gsense_env
    ```
 
-3. Install the core dependencies:
+3. Navigate into the GSense directory and install the core dependencies:
 
    ```bash
    cd GSense
