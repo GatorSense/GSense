@@ -1,8 +1,8 @@
 # GSenseg
 
-GSenseg is a Napari-based tool for the analysis and segmentation of hyperspectral images and RGB images.
+GSenseg is a GUI-based tool for the analysis and annotation of hyperspectral images and RGB images leveraging [Napari](https://napari.org/) and [Segment Anything Model (SAM)](https://github.com/facebookresearch/segment-anything).
 
-The tool provides functionality to load a batch of images (hyperspectral, multispectral or RGB), perform spectral indexing, segment the images using SAM (Segment Anything Model), binarize the labels if needed, annotate or modify the segmentation masks using Napari's built-in brush, line, point, polygon and eraser tools.
+The tool provides functionality to load a batch of images (hyperspectral, multispectral or RGB), perform spectral indexing, segment the images using SAM (Segment Anything Model), binarize the labels if needed, annotate or modify the segmentation masks using Napari's built-in brush, line, point, polygon and eraser tools, and export annotations in TIF format.
 
 ## Functionalities
 
