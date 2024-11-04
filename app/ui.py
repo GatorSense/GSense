@@ -1,12 +1,12 @@
 import napari
 import numpy as np
 import torch
-from torch.nn.functional import threshold, normalize, interpolate
+from torch.nn.functional import threshold, normalize
 from tkinter import filedialog
 from skimage import io
-from qtpy.QtWidgets import QWidget, QStyle, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QComboBox, QDockWidget, QMenu, QCheckBox, QSlider, QTabWidget
+from qtpy.QtWidgets import QWidget, QStyle, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QComboBox, QMenu, QCheckBox, QSlider, QTabWidget
 from qtpy.QtWidgets import QVBoxLayout, QLineEdit,QPlainTextEdit
-from qtpy.QtCore import QThread, Signal
+from qtpy.QtCore import QThread
 from qtpy.QtGui import QFont
 from qtpy.QtCore import Qt
 from transformers import pipeline, SamModel, SamProcessor
@@ -31,7 +31,6 @@ class CustomWidget(QWidget):
         self.images = []  # List to hold loaded images
         self.file_paths = []  # List to hold file paths of loaded images
         self.current_image_index = 0  # Index of the current image being displayed
-        self.current_img_idx = 0  # To track currently displayed image index
         self.current_rgb_idx = 0  # To track currently displayed pseudo-RGB index
         self.pseudo_rgb_images_per_image = []  # Store pseudoRGB images for each loaded image
         self.masks_per_image = []  # Store segmentation masks for each loaded image
@@ -340,7 +339,7 @@ class CustomWidget(QWidget):
         self.layer_controls_dock.setVisible(new_state)
 
     def display_label_range(self):
-        mask_layer_name = f"Mask Layer {self.current_img_idx + 1}-{self.current_rgb_idx + 1}"
+        mask_layer_name = f"Mask Layer {self.current_image_index + 1}-{self.current_rgb_idx + 1}"
         if mask_layer_name in self.viewer.layers:
             layer = self.viewer.layers[mask_layer_name]
             if isinstance(layer, napari.layers.Labels):
@@ -366,7 +365,7 @@ class CustomWidget(QWidget):
             logger.info(f"Label values provided for binarization: {binarize_values}")
 
         # Get the current mask layer corresponding to the current pseudo-RGB image
-        mask_layer_name = f"Mask Layer {self.current_img_idx + 1}-{self.current_rgb_idx + 1}"
+        mask_layer_name = f"Mask Layer {self.current_image_index + 1}-{self.current_rgb_idx + 1}"
         if mask_layer_name in self.viewer.layers:
             layer = self.viewer.layers[mask_layer_name]
             if isinstance(layer, napari.layers.Labels):
@@ -461,7 +460,7 @@ class CustomWidget(QWidget):
                     self.mask_generator = None
                     self.model = SamModel.from_pretrained("facebook/sam-vit-huge")
                     self.processor = SamProcessor.from_pretrained("facebook/sam-vit-huge")
-                    self.model.load_state_dict(torch.load(checkpoint_option))
+                    self.model.load_state_dict(torch.load(checkpoint_option, weights_only=True))
                     self.model.to(device)
 
             elif model_type == "vit-b":
@@ -469,11 +468,11 @@ class CustomWidget(QWidget):
                     logger.info("Loading default vit-b model.")
                     self.mask_generator = pipeline("mask-generation", model="facebook/sam-vit-base", device=0)
                 else:
-                    logger.info(f"Loading custom vit-h model from checkpoint: {checkpoint_option}")
+                    logger.info(f"Loading custom vit-b model from checkpoint: {checkpoint_option}")
                     self.mask_generator = None
                     self.model = SamModel.from_pretrained("facebook/sam-vit-base")
                     self.processor = SamProcessor.from_pretrained("facebook/sam-vit-base")
-                    self.model.load_state_dict(torch.load(checkpoint_option))
+                    self.model.load_state_dict(torch.load(checkpoint_option, weights_only=True))
                     self.model.to(device)
                                 
             if self.threshold_checkbox:
@@ -508,7 +507,7 @@ class CustomWidget(QWidget):
 
     def show_pseudo_rgb_image(self, img_idx, rgb_idx):
         # Store current image and RGB index
-        self.current_img_idx = img_idx
+        self.current_image_index = img_idx
         self.current_rgb_idx = rgb_idx
 
         pseudo_rgb_image = self.pseudo_rgb_images_per_image[img_idx][rgb_idx]
@@ -529,7 +528,7 @@ class CustomWidget(QWidget):
         # Save the current pseudo-RGB images and masks before navigating
         self.save_current_pseudo_rgb_and_masks()
 
-        # Move to the next image
+        # Move to the next image and loop
         self.current_image_index = (self.current_image_index + 1) % len(self.images)
         self.show_image(self.current_image_index)
 
@@ -538,7 +537,7 @@ class CustomWidget(QWidget):
         # Save the current pseudo-RGB images and masks before navigating
         self.save_current_pseudo_rgb_and_masks()
 
-        # Move to the previous image
+        # Move to the previous image and loop
         self.current_image_index = (self.current_image_index - 1) % len(self.images)
         self.show_image(self.current_image_index)
 
@@ -546,8 +545,8 @@ class CustomWidget(QWidget):
         # Get the current pseudo-RGB images and corresponding masks from the viewer
         for rgb_idx, _ in enumerate(self.pseudo_rgb_buttons):
             # Retrieve the pseudo-RGB image and corresponding mask for each button
-            pseudo_rgb_layer_name = f"Pseudo-RGB Image {self.current_img_idx + 1}-{rgb_idx + 1}"
-            mask_layer_name = f"Mask Layer {self.current_img_idx + 1}-{rgb_idx + 1}"
+            pseudo_rgb_layer_name = f"Pseudo-RGB Image {self.current_image_index + 1}-{rgb_idx + 1}"
+            mask_layer_name = f"Mask Layer {self.current_image_index + 1}-{rgb_idx + 1}"
 
             pseudo_rgb_image = None
             mask_layer = None
@@ -772,19 +771,19 @@ class CustomWidget(QWidget):
         else:
             self.threshold_slider.setVisible(False)
             logger.info("Threshold checkbox state False.")
-            # Update to use self.current_img_idx and self.current_rgb_idx
-            self.show_image_and_mask(self.current_img_idx, self.current_rgb_idx)
+            # Update to use self.current_image_index and self.current_rgb_idx
+            self.show_image_and_mask(self.current_image_index, self.current_rgb_idx)
 
     def update_masks_with_threshold(self, value):
         # Update the thresholded masks based on the slider value
         logger.info("Threshold slider value updated.")
-        upscaled_masks = self.upscaled_masks_per_image[self.current_img_idx]
+        upscaled_masks = self.upscaled_masks_per_image[self.current_image_index]
         if upscaled_masks is not None:
             # print("Threshold value updated to: ", value)
             thresholded_masks = normalize(threshold(upscaled_masks, threshold=value, value=0)).squeeze(1)
-            self.masks_per_image[self.current_img_idx][self.current_rgb_idx] = thresholded_masks.cpu()
+            self.masks_per_image[self.current_image_index][self.current_rgb_idx] = thresholded_masks.cpu()
             # Call show_image_and_mask with current img and rgb indices
-            self.show_image_and_mask(self.current_img_idx, self.current_rgb_idx)
+            self.show_image_and_mask(self.current_image_index, self.current_rgb_idx)
 
     def set_spectral_mixing_enabled(self, enabled):
         self.r_input.setEnabled(enabled)

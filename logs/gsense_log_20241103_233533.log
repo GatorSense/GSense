@@ -1,0 +1,48 @@
+2024-11-03 23:35:42,185 - INFO - User initiated image loading.
+2024-11-03 23:35:51,501 - INFO - Processing file: papaya.jpg (Format: .jpg)
+2024-11-03 23:35:51,501 - INFO - Loading standard image format: .jpg
+2024-11-03 23:35:51,517 - INFO - Processing file: peanut.png (Format: .png)
+2024-11-03 23:35:51,517 - INFO - Loading standard image format: .png
+2024-11-03 23:35:51,581 - INFO - Processing file: root-vith-seg.png (Format: .png)
+2024-11-03 23:35:51,581 - INFO - Loading standard image format: .png
+2024-11-03 23:35:51,595 - INFO - Images loaded successfully: 3 images.
+2024-11-03 23:36:02,404 - INFO - Computing pseudo-RGB image. Red: ch[0] ; Green: ch[1] ; Blue: ch[2]
+2024-11-03 23:36:09,083 - INFO - Computing pseudo-RGB image. Red: ch[0]*10 ; Green: ch[1] ; Blue: ch[2]
+2024-11-03 23:36:21,027 - INFO - Device: cuda
+2024-11-03 23:36:21,027 - INFO - Loading custom vit-b model from checkpoint: D:/CIN/Napari-app/ckpt/roots_10ep_patches_gray_nointerpol_model_checkpoint.pth
+2024-11-03 23:36:31,648 - INFO - Model initialized successfully.
+2024-11-03 23:36:33,931 - INFO - Segmenting..
+2024-11-03 23:36:36,914 - INFO - Segmentation completed successfully.
+2024-11-03 23:36:41,924 - INFO - Next button clicked.
+2024-11-03 23:36:47,516 - INFO - Next button clicked.
+2024-11-03 23:36:51,885 - INFO - Next button clicked.
+2024-11-03 23:36:58,759 - INFO - Threshold checkbox state True.
+2024-11-03 23:37:02,128 - INFO - Threshold slider value updated.
+2024-11-03 23:37:02,443 - INFO - Threshold slider value updated.
+2024-11-03 23:37:03,168 - INFO - Threshold slider value updated.
+2024-11-03 23:37:03,404 - INFO - Threshold slider value updated.
+2024-11-03 23:37:04,296 - INFO - Threshold slider value updated.
+2024-11-03 23:37:04,847 - INFO - Threshold slider value updated.
+2024-11-03 23:37:05,801 - INFO - Threshold slider value updated.
+2024-11-03 23:37:06,036 - INFO - Threshold slider value updated.
+2024-11-03 23:37:06,831 - INFO - Threshold slider value updated.
+2024-11-03 23:37:08,067 - INFO - Threshold slider value updated.
+2024-11-03 23:37:08,322 - INFO - Threshold slider value updated.
+2024-11-03 23:37:09,655 - INFO - Threshold slider value updated.
+2024-11-03 23:37:12,136 - INFO - Next button clicked.
+2024-11-03 23:37:16,413 - INFO - Threshold slider value updated.
+2024-11-03 23:37:16,661 - INFO - Threshold slider value updated.
+2024-11-03 23:37:17,468 - INFO - Threshold slider value updated.
+2024-11-03 23:37:18,160 - INFO - Threshold slider value updated.
+2024-11-03 23:37:19,236 - INFO - Threshold slider value updated.
+2024-11-03 23:37:19,492 - INFO - Threshold slider value updated.
+2024-11-03 23:37:22,296 - INFO - Previous button clicked.
+2024-11-03 23:37:26,288 - INFO - Next button clicked.
+2024-11-03 23:37:32,888 - INFO - Next button clicked.
+2024-11-03 23:37:44,733 - INFO - Threshold slider value updated.
+2024-11-03 23:37:45,017 - INFO - Threshold slider value updated.
+2024-11-03 23:37:47,280 - INFO - Threshold slider value updated.
+2024-11-03 23:37:47,533 - INFO - Threshold slider value updated.
+2024-11-03 23:37:49,394 - INFO - Threshold slider value updated.
+2024-11-03 23:37:50,987 - INFO - Threshold slider value updated.
+2024-11-03 23:38:48,293 - INFO - Next button clicked.
