@@ -8,6 +8,7 @@ from PIL import Image
 import imageio
 import warnings
 from qtpy.QtWidgets import QMessageBox
+from app.logging import logger
 
 
 warnings.filterwarnings("ignore", category=UserWarning, module="torch.utils.data.dataloader")
@@ -91,6 +92,7 @@ def segment_images_with_custom_model(model, processor, images):
 
 # Save selected layer function
 def save_selected_layer(viewer):
+    logger.info("Saving selected layer in viewer.")  
     selected_layers = viewer.layers.selection
     if not selected_layers:
         QMessageBox.warning(None, "Error", "No layer selected.")
@@ -106,22 +108,24 @@ def save_selected_layer(viewer):
                 if not file_path:
                     continue
                 imageio.imwrite(file_path, data)
-                print("Saving labels")
+                # print("Saving labels")
             else:
                 QMessageBox.warning(None, "Error", "Label layer has no valid labels.")
         else:
             file_path = filedialog.asksaveasfilename(defaultextension=".tif", filetypes=[("TIFF files", "*.tif")])
             if not file_path:
                 continue
-            print("Saving image")
+            # print("Saving image")
             imageio.imwrite(file_path, data)
         print(f"Layer {layer.name} saved to {file_path}")
+        logger.info(f"Layer {layer.name} saved to '{file_path}'")
 
 # Save all layers function
 def save_all_layers(viewer):
+    logger.info("Saving all layers in viewer.")  
     for layer in viewer.layers:
         data = layer.data
-        file_path = f"{layer.name}.tif"
+        file_path = f"exports/{layer.name}.tif"
         if isinstance(layer, napari.layers.Labels):
             # Scale labels to 0-255
             max_val = data.max()
@@ -134,4 +138,5 @@ def save_all_layers(viewer):
         else:
             print("Saving image")
             imageio.imwrite(file_path, data)
-        print(f"Layer {layer.name} saved to {file_path}")
+        print(f"Layer {layer.name} saved to '{file_path}'")
+        logger.info(f"Layer {layer.name} saved to '{file_path}'")

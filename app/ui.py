@@ -17,6 +17,7 @@ from spectral import open_image
 from app.worker import Worker
 from app.core import compute_channel, segment_images_with_pipeline, segment_images_with_custom_model, save_all_layers, save_selected_layer
 from app.core import device
+from app.logging import logger
 
 
 
@@ -43,10 +44,10 @@ class CustomWidget(QWidget):
         self.threshold_checkbox = None
         self.threshold_slider = None
         self.threshold_value = None
-        self.upscaled_masks_per_image = []         
+        self.upscaled_masks_per_image = []   
+            
 
-        layout = QVBoxLayout()
-        
+        layout = QVBoxLayout()        
         tab_widget = QTabWidget()
         
         # Create a horizontal layout for buttons you want to move to the bottom
@@ -58,7 +59,6 @@ class CustomWidget(QWidget):
         layout.addWidget(self.load_images_btn)
         
         ########## Spectral Mixing Tab ##########
-        
         spectral_mixing_widget = QWidget()
         spectral_layout = QVBoxLayout()
         
@@ -148,9 +148,7 @@ class CustomWidget(QWidget):
         self.hsi_button = QPushButton("Image data", self)
         self.hsi_button.clicked.connect(self.show_hyperspectral_image)
         layout.addWidget(self.hsi_button, stretch=0)
-        
-        
-        
+               
         ######### Pseudo-RGB Buttons #########
 
         self.pseudo_rgb_buttons_layout = QVBoxLayout()
@@ -174,7 +172,6 @@ class CustomWidget(QWidget):
 
         # Add the bottom layout to the main layout
         layout.addLayout(self.bottom_layout)
-
         
         ######## Save Buttons #########
         
@@ -198,7 +195,6 @@ class CustomWidget(QWidget):
         self.save_all_button.clicked.connect(lambda: save_all_layers(self.viewer))
         save_buttons_layout.addWidget(self.save_all_button, Qt.AlignRight)
      
-        
         ######### Layer Controls and Layer List Buttons #########
         
         # Adding buttons for toggling the visibility of layer controls and layer list
@@ -212,21 +208,152 @@ class CustomWidget(QWidget):
         
         layout.addLayout(save_buttons_layout)
 
-
         self.setLayout(layout)
 
-    # Add buttons to hide/show the Layer Controls and Layer List dock widgets
+    def load_images(self):
+        logger.info("User initiated image loading.")
+        
+        # Open file dialog in the main thread
+        file_types = [("Image files", "*.png;*.jpg;*.tif;*.bmp;*.raw;*.dat")]
+        file_paths = filedialog.askopenfilenames(filetypes=file_types)
+
+        if not file_paths:
+            QMessageBox.warning(self, "No files selected", "Please select one or more image files.")
+            return
+
+        # Now run the actual image loading in a separate thread
+        self.thread = QThread()
+        self.worker = Worker(self.load_images_in_thread, file_paths)
+
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.result.connect(self.handle_images_loaded)
+        self.worker.error.connect(self.handle_loading_error)
+
+        self.thread.start()
+        
+
+    def load_images_in_thread(self, file_paths):
+        images = []
+        pseudo_rgb_images_per_image = []
+        masks_per_image = []
+
+        # Store all paths that lack corresponding .hdr files
+        dat_files_without_hdr = []
+
+        for file_path in file_paths:
+            # Extract just the file name and extension, avoiding the full path
+            file_name = os.path.basename(file_path)
+            file_extension = os.path.splitext(file_path)[1]
+            logger.info(f"Processing file: {file_name} (Format: {file_extension})")
+
+            if file_extension == '.raw':
+                logger.info("Detected raw file, converting to TIFF.")
+                tiff_file = os.path.splitext(file_path)[0] + '_converted.tif'
+                subprocess.run(["gdal_translate", "-of", "GTiff", file_path, tiff_file])
+                hyperspectral_data = io.imread(tiff_file)
+                images.append(hyperspectral_data)
+            elif file_extension == '.dat':
+                hdr_file_path = file_path.replace('.dat', '.hdr')
+                if not os.path.exists(hdr_file_path):
+                    logger.warning(f"No corresponding .hdr file found for {file_name}.")
+                    dat_files_without_hdr.append(file_path)
+                else:
+                    logger.info(f"Detected .dat file with existing .hdr: {os.path.basename(hdr_file_path)}")
+                    hsi_image = open_image(hdr_file_path)
+                    hyperspectral_data = hsi_image.load().astype(np.float32)
+                    images.append(hyperspectral_data)
+            else:
+                logger.info(f"Loading standard image format: {file_extension}")
+                hyperspectral_data = io.imread(file_path)
+                images.append(hyperspectral_data)
+
+        if dat_files_without_hdr:
+            logger.warning(f"User needs to provide .hdr file for {len(dat_files_without_hdr)} .dat files.")
+            return dat_files_without_hdr, images
+
+        if images:
+            pseudo_rgb_images_per_image = [[] for _ in range(len(images))]
+            masks_per_image = [[] for _ in range(len(images))]
+
+        return None, images, pseudo_rgb_images_per_image, masks_per_image
+
+
+    def handle_images_loaded(self, result):
+        dat_files_without_hdr, images, pseudo_rgb_images_per_image, masks_per_image = result
+        logger.info(f"Images loaded successfully: {len(result[1])} images.")
+
+        if dat_files_without_hdr:
+            # User selects .hdr file for the .dat files that don't have them
+            hdr_file_path = filedialog.askopenfilename(
+                title="Select the .hdr file to be used for .dat files without a corresponding .hdr file", 
+                filetypes=[("HDR files", "*.hdr")]
+            )
+            if hdr_file_path:
+                for file_path in dat_files_without_hdr:
+                    try:
+                        temp_hdr_path = file_path.replace('.dat', '.hdr')
+                        shutil.copy(hdr_file_path, temp_hdr_path)
+
+                        hsi_image = open_image(temp_hdr_path)
+                        hyperspectral_data = hsi_image.load().astype(np.float32)
+                        images.append(hyperspectral_data)
+
+                        # Remove temporary .hdr file
+                        os.remove(temp_hdr_path)
+                    except Exception as e:
+                        print(f"Error processing file {file_path}: {e}")
+            else:
+                QMessageBox.warning(self, "No .hdr file selected", "Some .dat files were skipped.")
+                return
+
+        self.images = images
+        self.pseudo_rgb_images_per_image = pseudo_rgb_images_per_image
+        self.masks_per_image = masks_per_image
+
+        # Show the first image
+        if len(self.images) > 0:
+            self.show_image(0)
+
+        # Enable navigation buttons if more than one image is loaded
+        if len(self.images) > 1:
+            self.previous_button.setEnabled(True)
+            self.next_button.setEnabled(True)
+
+    def handle_loading_error(self, error_msg):
+        logger.error(f"Image loading error: {error_msg}")
+        QMessageBox.warning(self, "Image Loading Error", f"An error occurred: {error_msg}")
+    
     def toggle_layer_list(self):
-        self.layer_list_dock.setVisible(not self.layer_list_dock.isVisible())
+        new_state = not self.layer_list_dock.isVisible()
+        state_str = "shown" if new_state else "hidden"
+        logger.info(f"Layer list visibility toggled. New state: {state_str}")
+        self.layer_list_dock.setVisible(new_state)
 
     def toggle_layer_controls(self):
-        self.layer_controls_dock.setVisible(not self.layer_controls_dock.isVisible())
+        new_state = not self.layer_controls_dock.isVisible()
+        state_str = "shown" if new_state else "hidden"
+        logger.info(f"Layer controls visibility toggled. New state: {state_str}")
+        self.layer_controls_dock.setVisible(new_state)
 
-        
+    def display_label_range(self):
+        mask_layer_name = f"Mask Layer {self.current_img_idx + 1}-{self.current_rgb_idx + 1}"
+        if mask_layer_name in self.viewer.layers:
+            layer = self.viewer.layers[mask_layer_name]
+            if isinstance(layer, napari.layers.Labels):
+                unique_labels = np.unique(layer.data)
+                label_range_text = f"Labels in current mask range from {unique_labels.min()} to {unique_labels.max()}"
+                self.binarize_status_label.setText(label_range_text)   
+    
     def binarize_labels(self):
         label_text = self.label_input.toPlainText()
+        logger.info("Binarize button clicked.")
         if not label_text:
             binarize_values = [1]  # Default to label 1
+            logger.info("No label values provided; defaulting to label 1.")
         else:
             label_ranges = label_text.split(',')
             binarize_values = []
@@ -236,6 +363,7 @@ class CustomWidget(QWidget):
                     binarize_values.extend(range(int(start), int(end) + 1))
                 else:
                     binarize_values.append(int(label_range.strip()))
+            logger.info(f"Label values provided for binarization: {binarize_values}")
 
         # Get the current mask layer corresponding to the current pseudo-RGB image
         mask_layer_name = f"Mask Layer {self.current_img_idx + 1}-{self.current_rgb_idx + 1}"
@@ -245,10 +373,8 @@ class CustomWidget(QWidget):
                 data = layer.data
                 binary_mask = np.isin(data, binarize_values).astype(np.uint8)
                 self.viewer.add_labels(binary_mask, name=f"Binarized {layer.name}")
-                # print(f"Layer {layer.name} binarized successfully.")
-
-            self.binarize_status_label.setText("Binarization applied successfully.")
-            # print("Binarization applied successfully.")
+                logger.info(f"Binarization applied successfully to {mask_layer_name}.")
+            self.binarize_status_label.setText("Mask binarized. Find the binarized mask in the Layers menu.")
 
     def load_custom_checkpoint(self):
         file_path = filedialog.askopenfilename(filetypes=[("Checkpoint files", "*.pth")])
@@ -271,13 +397,12 @@ class CustomWidget(QWidget):
     def show_context_menu(self, button, pos, img_idx, rgb_idx):
         """Show a context menu with delete options when right-clicking a pseudo-RGB button."""
         menu = QMenu(self)
-
         # Option 1: Delete this specific pseudo-RGB image for the current image
-        delete_single_action = menu.addAction("Delete this Pseudo-RGB Image")
+        delete_single_action = menu.addAction("Delete this pseudo-RGB image")
         delete_single_action.triggered.connect(lambda: self.delete_single_pseudo_rgb(img_idx, rgb_idx))
 
         # Option 2: Delete this pseudo-RGB image for all batch images
-        delete_all_action = menu.addAction("Delete this Pseudo-RGB Image for all images")
+        delete_all_action = menu.addAction("Delete this pseudo-RGB image for all images")
         delete_all_action.triggered.connect(lambda: self.delete_pseudo_rgb_for_all_images(rgb_idx))
 
         # Show the context menu
@@ -322,14 +447,17 @@ class CustomWidget(QWidget):
         model_type = self.model_type_combo.currentText()
         checkpoint_option = self.checkpoint_combo.currentData()
         print(f"Device: {device}")
+        logger.info(f"Device: {device}")
 
         try:
             if model_type == "vit-h":
                 if checkpoint_option is None or checkpoint_option == "default":
-                    print("Loading default vit-h model via pipeline...")
+                    # print("Loading default vit-h model via pipeline...")
+                    logger.info("Loading default vit-h model.")
                     self.mask_generator = pipeline("mask-generation", model="facebook/sam-vit-huge", device=0)
                 else:
-                    print(f"Loading custom vit-h model from: {checkpoint_option}")
+                    # print(f"Loading custom vit-h model from: {checkpoint_option}")
+                    logger.info(f"Loading custom vit-h model from checkpoint: {checkpoint_option}")
                     self.mask_generator = None
                     self.model = SamModel.from_pretrained("facebook/sam-vit-huge")
                     self.processor = SamProcessor.from_pretrained("facebook/sam-vit-huge")
@@ -338,145 +466,30 @@ class CustomWidget(QWidget):
 
             elif model_type == "vit-b":
                 if checkpoint_option is None or checkpoint_option == "default":
-                    print("Loading default vit-b model via pipeline...")
+                    logger.info("Loading default vit-b model.")
                     self.mask_generator = pipeline("mask-generation", model="facebook/sam-vit-base", device=0)
                 else:
-                    print(f"Loading custom vit-b model from: {checkpoint_option}")
+                    logger.info(f"Loading custom vit-h model from checkpoint: {checkpoint_option}")
                     self.mask_generator = None
                     self.model = SamModel.from_pretrained("facebook/sam-vit-base")
                     self.processor = SamProcessor.from_pretrained("facebook/sam-vit-base")
                     self.model.load_state_dict(torch.load(checkpoint_option))
                     self.model.to(device)
-                    
-            
+                                
             if self.threshold_checkbox:
                 self.threshold_checkbox.setVisible(False)
             
             if self.threshold_slider:
                 self.threshold_slider.setVisible(False)
 
-            # print("Model and processor initialized successfully")
             QMessageBox.information(self, "Success", "Model initialized successfully!")
-            # Enable the segmentation button
             self.segment_button.setEnabled(True)
+            logger.info("Model initialized successfully.")
 
         except Exception as e:
-            print(f"Error initializing model: {e}")
+            logger.error(f"Error initializing model: {e}")
             QMessageBox.warning(self, "Error", f"Failed to initialize model: {str(e)}")
-            
-    def load_images(self):
-        # Open file dialog in the main thread
-        file_types = [("Image files", "*.png;*.jpg;*.tif;*.bmp;*.raw;*.dat")]
-        file_paths = filedialog.askopenfilenames(filetypes=file_types)
-
-        if not file_paths:
-            QMessageBox.warning(self, "No files selected", "Please select one or more image files.")
-            return
-
-        # Now run the actual image loading in a separate thread
-        self.thread = QThread()
-        self.worker = Worker(self.load_images_in_thread, file_paths)
-
-        self.worker.moveToThread(self.thread)
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
-        self.worker.result.connect(self.handle_images_loaded)
-        self.worker.error.connect(self.handle_loading_error)
-
-        self.thread.start()
-
-
-    def load_images_in_thread(self, file_paths):
-        images = []
-        pseudo_rgb_images_per_image = []
-        masks_per_image = []
-
-        # Store all paths that lack corresponding .hdr files
-        dat_files_without_hdr = []
-
-        for file_path in file_paths:
-            file_extension = os.path.splitext(file_path)[1]
-            if file_extension == '.raw':
-                # Process raw files (convert to TIFF)
-                tiff_file = os.path.splitext(file_path)[0] + '_converted.tif'
-                subprocess.run(["gdal_translate", "-of", "GTiff", file_path, tiff_file])
-                hyperspectral_data = io.imread(tiff_file)
-                images.append(hyperspectral_data)
-            elif file_extension == '.dat':
-                # Check if the corresponding .hdr file exists
-                hdr_file_path = file_path.replace('.dat', '.hdr')
-                if not os.path.exists(hdr_file_path):
-                    dat_files_without_hdr.append(file_path)
-                else:
-                    # Read the hyperspectral data using the hdr file
-                    hsi_image = open_image(hdr_file_path)
-                    hyperspectral_data = hsi_image.load().astype(np.float32)
-                    images.append(hyperspectral_data)
-            else:
-                # Load standard image formats
-                hyperspectral_data = io.imread(file_path)
-                images.append(hyperspectral_data)
-
-        # Handle .dat files without .hdr files
-        if dat_files_without_hdr:
-            # Since file dialogs are UI, they must happen on the main thread
-            return dat_files_without_hdr, images
-
-        # If images were loaded successfully, return them
-        if images:
-            pseudo_rgb_images_per_image = [[] for _ in range(len(images))]
-            masks_per_image = [[] for _ in range(len(images))]
-        
-        return None, images, pseudo_rgb_images_per_image, masks_per_image
-
-
-    def handle_images_loaded(self, result):
-        dat_files_without_hdr, images, pseudo_rgb_images_per_image, masks_per_image = result
-
-        if dat_files_without_hdr:
-            # Ask the user to select .hdr file for the .dat files that don't have them
-            hdr_file_path = filedialog.askopenfilename(
-                title="Select the .hdr file to be used for .dat files without a corresponding .hdr file", 
-                filetypes=[("HDR files", "*.hdr")]
-            )
-            if hdr_file_path:
-                for file_path in dat_files_without_hdr:
-                    try:
-                        temp_hdr_path = file_path.replace('.dat', '.hdr')
-                        shutil.copy(hdr_file_path, temp_hdr_path)
-
-                        hsi_image = open_image(temp_hdr_path)
-                        hyperspectral_data = hsi_image.load().astype(np.float32)
-                        images.append(hyperspectral_data)
-
-                        # Clean up temporary .hdr file
-                        os.remove(temp_hdr_path)
-                    except Exception as e:
-                        print(f"Error processing file {file_path}: {e}")
-            else:
-                QMessageBox.warning(self, "No .hdr file selected", "Some .dat files were skipped.")
-                return
-
-        # Now that all images have been loaded (with any .hdr files included), assign them
-        self.images = images
-        self.pseudo_rgb_images_per_image = pseudo_rgb_images_per_image
-        self.masks_per_image = masks_per_image
-
-        # Show the first image
-        if len(self.images) > 0:
-            self.show_image(0)
-
-        # Enable navigation buttons if more than one image is loaded
-        if len(self.images) > 1:
-            self.previous_button.setEnabled(True)
-            self.next_button.setEnabled(True)
-
-
-    def handle_loading_error(self, error_msg):
-        QMessageBox.warning(self, "Image Loading Error", f"An error occurred: {error_msg}")
-
+                
 
     def show_image(self, index):
         self.current_image_index = index
@@ -512,6 +525,7 @@ class CustomWidget(QWidget):
             self.show_image_and_mask(img_idx, rgb_idx)
 
     def show_next_image(self):
+        logger.info("Next button clicked.")
         # Save the current pseudo-RGB images and masks before navigating
         self.save_current_pseudo_rgb_and_masks()
 
@@ -520,6 +534,7 @@ class CustomWidget(QWidget):
         self.show_image(self.current_image_index)
 
     def show_previous_image(self):
+        logger.info("Previous button clicked.")
         # Save the current pseudo-RGB images and masks before navigating
         self.save_current_pseudo_rgb_and_masks()
 
@@ -547,10 +562,12 @@ class CustomWidget(QWidget):
                     # print("Data: ", mask_layer)
                     self.masks_per_image[self.current_image_index][rgb_idx] = mask_layer
         
-    def compute_image(self):
+    def compute_image(self):        
         r_expr = self.r_input.text()
         g_expr = self.g_input.text()
         b_expr = self.b_input.text()
+        
+        logger.info(f"Computing pseudo-RGB image. Red: {r_expr} ; Green: {g_expr} ; Blue: {b_expr}")      
 
         # Create a QThread object
         self.thread = QThread()
@@ -588,9 +605,9 @@ class CustomWidget(QWidget):
         self.update_pseudo_rgb_buttons(self.current_image_index)
         
     def handle_computation_error(self, error_msg):
+        logger.error(f"Computation error: {error_msg}")
         QMessageBox.warning(self, "Computation Error", f"An error occurred: {error_msg}")
 
-            
     def show_hyperspectral_image(self):
         hyperspectral_image = self.images[self.current_image_index]
         self.viewer.layers.clear()
@@ -599,6 +616,7 @@ class CustomWidget(QWidget):
         self.set_spectral_mixing_enabled(True)
     
     def run_segmentation(self):
+        logger.info("Segmenting..")
         self.viewer.status = "Segmentation is running..."
         
         self.masks_per_image = [[] for _ in range(len(self.images))]
@@ -666,11 +684,12 @@ class CustomWidget(QWidget):
 
         # If we received valid segmented masks, update the UI and show them
         if segmented_masks_list:
+            logger.info("Segmentation completed successfully.")
             self.masks_per_image = segmented_masks_list
             self.binarize_button.setEnabled(True)
             
-            # Display the first image and its first mask
-            self.show_image_and_mask(0, 0)
+            # Display the current image and its mask
+            self.show_image_and_mask(self.current_image_index, 0)
 
             # Show threshold controls if valid min and max values are available
             if min_val is not None and max_val is not None:
@@ -678,9 +697,16 @@ class CustomWidget(QWidget):
             
             self.viewer.status = "Masks generated"
         else:
+            logger.warning("Segmentation returned no masks.")
             self.viewer.status = "Segmentation failed"
             QMessageBox.warning(self, "Segmentation Error", "No segmentation masks were produced.")
 
+    # Handle segmentation error
+    def handle_segmentation_error(self, error_msg):
+        logger.error(f"Segmentation error: {error_msg}")
+        QMessageBox.warning(self, "Segmentation Error", f"{error_msg}")
+        self.segment_button.setEnabled(True)
+    
     def show_image_and_mask(self, img_idx, rgb_idx):
         pseudo_rgb_image = self.pseudo_rgb_images_per_image[img_idx][rgb_idx]
         mask_set = self.masks_per_image[img_idx][rgb_idx]
@@ -716,7 +742,7 @@ class CustomWidget(QWidget):
 
         # Display the combined mask
         self.viewer.add_labels(combined_mask, name=f"Mask Layer {img_idx + 1}-{rgb_idx + 1}")
-
+        self.display_label_range()
 
     # Add the show_threshold_controls function back:
     def show_threshold_controls(self, min_val, max_val):
@@ -738,22 +764,20 @@ class CustomWidget(QWidget):
         # Show the checkbox
         self.threshold_checkbox.setVisible(True)
 
-    # Handle segmentation error
-    def handle_segmentation_error(self, error_msg):
-        QMessageBox.warning(self, "Segmentation Error", f"{error_msg}")
-        self.segment_button.setEnabled(True)
-
     def toggle_threshold(self, state):
         # Show or hide the threshold slider based on the checkbox state
         if state == Qt.Checked:
             self.threshold_slider.setVisible(True)
+            logger.info("Threshold checkbox state True.")  
         else:
             self.threshold_slider.setVisible(False)
+            logger.info("Threshold checkbox state False.")
             # Update to use self.current_img_idx and self.current_rgb_idx
             self.show_image_and_mask(self.current_img_idx, self.current_rgb_idx)
 
     def update_masks_with_threshold(self, value):
         # Update the thresholded masks based on the slider value
+        logger.info("Threshold slider value updated.")
         upscaled_masks = self.upscaled_masks_per_image[self.current_img_idx]
         if upscaled_masks is not None:
             # print("Threshold value updated to: ", value)
@@ -761,7 +785,6 @@ class CustomWidget(QWidget):
             self.masks_per_image[self.current_img_idx][self.current_rgb_idx] = thresholded_masks.cpu()
             # Call show_image_and_mask with current img and rgb indices
             self.show_image_and_mask(self.current_img_idx, self.current_rgb_idx)
-
 
     def set_spectral_mixing_enabled(self, enabled):
         self.r_input.setEnabled(enabled)
