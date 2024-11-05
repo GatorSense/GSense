@@ -15,7 +15,7 @@ import shutil
 import subprocess
 from spectral import open_image
 from app.worker import Worker
-from app.core import compute_channel, segment_images_with_pipeline, segment_images_with_custom_model, save_all_layers, save_selected_layer
+from app.core import validate_expression, compute_channel, segment_images_with_pipeline, segment_images_with_custom_model, save_all_layers, save_selected_layer
 from app.core import device
 from app.logging import logger
 
@@ -144,6 +144,7 @@ class CustomWidget(QWidget):
         ######### Image Button #########
         self.hsi_button = QPushButton("Image data", self)
         self.hsi_button.clicked.connect(self.show_hyperspectral_image)
+        self.hsi_button.setEnabled(False)     # Disable until image(s) are loaded
         layout.addWidget(self.hsi_button, stretch=0)
                
         ######### Pseudo-RGB Buttons #########
@@ -208,7 +209,7 @@ class CustomWidget(QWidget):
        
     #########################
 
-    ## UI-only and helper methods
+    ## UI-only methods and helper methods
     def toggle_layer_list(self):
         new_state = not self.layer_list_dock.isVisible()
         state_str = "shown" if new_state else "hidden"
@@ -230,10 +231,10 @@ class CustomWidget(QWidget):
         if len(self.masks_per_image[self.current_image_index]) > 0:
             self.update_pseudo_rgb_buttons(self.current_image_index)
             self.show_image_and_mask(self.current_image_index, 0)
-            self.update_button_highlight(self.current_image_index, 0) # This should highlight the first pseudoRGB button of current image index
+            self.update_button_highlight(0) # This should highlight the first pseudoRGB button of current image index
         else:
             self.show_image(self.current_image_index)
-            self.update_button_highlight(self.current_image_index, None) # This should highlight the "Image" button of current image index 
+            self.update_button_highlight(None) # This should highlight the "Image" button of current image index 
 
     def show_previous_image(self):
         logger.info("Previous button clicked.")
@@ -246,13 +247,13 @@ class CustomWidget(QWidget):
         if len(self.masks_per_image[self.current_image_index]) > 0:
             self.update_pseudo_rgb_buttons(self.current_image_index)
             self.show_image_and_mask(self.current_image_index, 0)
-            self.update_button_highlight(self.current_image_index, 0) # This should highlight the first pseudoRGB button of current image index
+            self.update_button_highlight(0) # This should highlight the first pseudoRGB button of current image index
         else:
             self.show_image(self.current_image_index)
-            self.update_button_highlight(self.current_image_index, None) # This should highlight the "Image" button of current image index 
+            self.update_button_highlight(None) # This should highlight the "Image" button of current image index 
 
             
-    def update_button_highlight(self, img_idx, rgb_idx):
+    def update_button_highlight(self, rgb_idx):
         """Highlight the button corresponding to the input image and pseudo-RGB index."""
         # Clear the styles of all pseudo-RGB buttons
         for button in self.pseudo_rgb_buttons:
@@ -260,13 +261,13 @@ class CustomWidget(QWidget):
 
         # Highlight the Image button if `rgb_idx` is None (indicating the base image)
         if rgb_idx is None:
-            self.hsi_button.setStyleSheet("background-color: darkorange;")
+            self.hsi_button.setStyleSheet("background-color: orange;")  # Highlight style
         else:
             self.hsi_button.setStyleSheet("")  # Reset the style if not displaying the base image
 
         # Highlight the specific pseudo-RGB button if `rgb_idx` is not None
         if rgb_idx is not None and rgb_idx < len(self.pseudo_rgb_buttons):
-            self.pseudo_rgb_buttons[rgb_idx].setStyleSheet("background-color: darkorange;")  # Highlight style
+            self.pseudo_rgb_buttons[rgb_idx].setStyleSheet("background-color: orange;")  # Highlight style
         
         
     def show_context_menu(self, button, pos, img_idx, rgb_idx):
@@ -358,7 +359,7 @@ class CustomWidget(QWidget):
         if len(self.masks_per_image[img_idx]) > rgb_idx:
             self.show_image_and_mask(img_idx, rgb_idx)
         
-        self.update_button_highlight(img_idx, rgb_idx)
+        self.update_button_highlight(rgb_idx)
             
             
     def show_image(self, index):
@@ -377,7 +378,7 @@ class CustomWidget(QWidget):
 
         self.set_spectral_mixing_enabled(True)
         self.save_button.setEnabled(False)
-        self.hsi_button.setVisible(True)  # Hide the Image button initially  
+        self.hsi_button.setEnabled(True)  
 
     def save_current_pseudo_rgb_and_masks(self):
         ''' Save the current pseudo-RGB images and masks before navigating to a new image '''
@@ -409,7 +410,7 @@ class CustomWidget(QWidget):
         self.viewer.add_image(hyperspectral_image, colormap='gray', name="Image")
         self.save_button.setEnabled(False)
         self.set_spectral_mixing_enabled(True)
-        self.update_button_highlight(0,None)
+        self.update_button_highlight(None)
     
     
     def show_image_and_mask(self, img_idx, rgb_idx):
@@ -563,7 +564,7 @@ class CustomWidget(QWidget):
         # Show the first image
         if len(self.images) > 0:
             self.show_image(0)
-            self.update_button_highlight(0, None)
+            self.update_button_highlight(None)
 
         # Enable navigation buttons if more than one image is loaded
         if len(self.images) > 1:
@@ -579,11 +580,24 @@ class CustomWidget(QWidget):
     ### Spectral Indexing  
     def compute_image(self):
         ''' Compute pseudo-RGB image based on user input '''        
+        
+        logger.info(f"Computing pseudo-RGB image.")
+        
+        if not self.images:
+            QMessageBox.warning(self, "No Images Loaded", "Please load images before computing a pseudo-RGB image.")
+            return
+        
         r_expr = self.r_input.text()
         g_expr = self.g_input.text()
         b_expr = self.b_input.text()
+
+        # Validate expressions before starting computation
+        if not validate_expression(r_expr) or not validate_expression(g_expr) or not validate_expression(b_expr):
+            QMessageBox.warning(self, "Invalid Input", "Please enter valid channel expressions using ch[i] (e.g., ch[0] + ch[1]).")
+            logger.warning(f"Invalid channel expressions entered. Red: {r_expr} ; Green: {g_expr} ; Blue: {b_expr}")
+            return
         
-        logger.info(f"Computing pseudo-RGB image. Red: {r_expr} ; Green: {g_expr} ; Blue: {b_expr}")      
+        logger.info(f"Valid expressions entered: Red: {r_expr} ; Green: {g_expr} ; Blue: {b_expr}")
 
         # Create a QThread object
         self.thread = QThread()
@@ -605,27 +619,94 @@ class CustomWidget(QWidget):
         # Start the thread
         self.thread.start()
 
+    
     def compute_pseudo_rgb_in_thread(self, r_expr, g_expr, b_expr):
-        ''' Compute pseudo-RGB image in a separate thread '''
-        for idx, hyperspectral_data in enumerate(self.images):
-            channels = {i: hyperspectral_data[:, :, i] for i in range(hyperspectral_data.shape[-1])}
-            red_channel = compute_channel(channels, r_expr)
-            green_channel = compute_channel(channels, g_expr)
-            blue_channel = compute_channel(channels, b_expr)
-            pseudo_rgb_image = np.stack([red_channel, green_channel, blue_channel], axis=-1)
-            self.pseudo_rgb_images_per_image[idx].append(pseudo_rgb_image)
+        ''' Compute pseudo-RGB image in a separate thread with error handling '''
+        try:
+            for idx, hyperspectral_data in enumerate(self.images):
+                channels = {i: hyperspectral_data[:, :, i] for i in range(hyperspectral_data.shape[-1])}
+                
+                # Safely compute each channel with try-except blocks
+                try:
+                    red_channel = compute_channel(channels, r_expr)
+                    green_channel = compute_channel(channels, g_expr)
+                    blue_channel = compute_channel(channels, b_expr)
+                except KeyError as e:
+                    raise ValueError(f"Channel index out of range in expression: {e}")
+                except Exception as e:
+                    raise RuntimeError(f"Error computing channel for image {idx+1}: {e}")
 
-        return self.pseudo_rgb_images_per_image
+                pseudo_rgb_image = np.stack([red_channel, green_channel, blue_channel], axis=-1)
+                self.pseudo_rgb_images_per_image[idx].append(pseudo_rgb_image)
+
+            return self.pseudo_rgb_images_per_image
+
+        except Exception as e:
+            # Signal any errors encountered
+            self.worker.error.emit(str(e))
 
     def handle_pseudo_rgb_computed(self, result):
         ''' Handle the result of pseudo-RGB computation '''
         self.pseudo_rgb_images_per_image = result
         self.update_pseudo_rgb_buttons(self.current_image_index)
-        
+    
     def handle_computation_error(self, error_msg):
         ''' Handle errors that occur during computation '''
         logger.error(f"Computation error: {error_msg}")
         QMessageBox.warning(self, "Computation Error", f"An error occurred: {error_msg}")
+
+   
+    
+    # ### Spectral Indexing  
+    # def compute_image(self):
+    #     ''' Compute pseudo-RGB image based on user input '''        
+    #     r_expr = self.r_input.text()
+    #     g_expr = self.g_input.text()
+    #     b_expr = self.b_input.text()
+        
+    #     logger.info(f"Computing pseudo-RGB image. Red: {r_expr} ; Green: {g_expr} ; Blue: {b_expr}")      
+
+    #     # Create a QThread object
+    #     self.thread = QThread()
+
+    #     # Create a worker object for computation
+    #     self.worker = Worker(self.compute_pseudo_rgb_in_thread, r_expr, g_expr, b_expr)
+
+    #     # Move the worker to the thread
+    #     self.worker.moveToThread(self.thread)
+
+    #     # Connect signals and slots
+    #     self.thread.started.connect(self.worker.run)
+    #     self.worker.finished.connect(self.thread.quit)
+    #     self.worker.finished.connect(self.worker.deleteLater)
+    #     self.thread.finished.connect(self.thread.deleteLater)
+    #     self.worker.result.connect(self.handle_pseudo_rgb_computed)
+    #     self.worker.error.connect(self.handle_computation_error)
+
+    #     # Start the thread
+    #     self.thread.start()
+
+    # def compute_pseudo_rgb_in_thread(self, r_expr, g_expr, b_expr):
+    #     ''' Compute pseudo-RGB image in a separate thread '''
+    #     for idx, hyperspectral_data in enumerate(self.images):
+    #         channels = {i: hyperspectral_data[:, :, i] for i in range(hyperspectral_data.shape[-1])}
+    #         red_channel = compute_channel(channels, r_expr)
+    #         green_channel = compute_channel(channels, g_expr)
+    #         blue_channel = compute_channel(channels, b_expr)
+    #         pseudo_rgb_image = np.stack([red_channel, green_channel, blue_channel], axis=-1)
+    #         self.pseudo_rgb_images_per_image[idx].append(pseudo_rgb_image)
+
+    #     return self.pseudo_rgb_images_per_image
+
+    # def handle_pseudo_rgb_computed(self, result):
+    #     ''' Handle the result of pseudo-RGB computation '''
+    #     self.pseudo_rgb_images_per_image = result
+    #     self.update_pseudo_rgb_buttons(self.current_image_index)
+        
+    # def handle_computation_error(self, error_msg):
+    #     ''' Handle errors that occur during computation '''
+    #     logger.error(f"Computation error: {error_msg}")
+    #     QMessageBox.warning(self, "Computation Error", f"An error occurred: {error_msg}")
     
     
     ### SAM Model Settings
@@ -763,7 +844,7 @@ class CustomWidget(QWidget):
             
             # Display the current image and its mask
             self.show_image_and_mask(self.current_image_index, 0)
-            self.update_button_highlight(self.current_image_index, 0)
+            self.update_button_highlight(0)
 
             # Show threshold controls if valid min and max values are available
             if min_val is not None and max_val is not None:
@@ -855,7 +936,7 @@ class CustomWidget(QWidget):
             logger.info("Threshold checkbox state False.")
             # Update to use self.current_image_index and self.current_rgb_idx
             self.show_image_and_mask(self.current_image_index, self.current_rgb_idx)
-            self.update_button_highlight(self.current_image_index, self.current_rgb_idx)
+            self.update_button_highlight(self.current_rgb_idx)
 
     def update_masks_with_threshold(self, value):
         # Update the thresholded masks based on the slider value
@@ -866,5 +947,5 @@ class CustomWidget(QWidget):
             thresholded_masks = normalize(threshold(upscaled_masks, threshold=value, value=0)).squeeze(1)
             self.masks_per_image[self.current_image_index][self.current_rgb_idx] = thresholded_masks.cpu()
             self.show_image_and_mask(self.current_image_index, self.current_rgb_idx)
-            self.update_button_highlight(self.current_image_index, self.current_rgb_idx)
+            self.update_button_highlight(self.current_rgb_idx)
 
