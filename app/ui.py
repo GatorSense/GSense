@@ -259,15 +259,15 @@ class CustomWidget(QWidget):
         for button in self.pseudo_rgb_buttons:
             button.setStyleSheet("")  # Reset to default style
 
-        # Highlight the Image button if `rgb_idx` is None (indicating the base image)
+        # Highlight the Image button if `rgb_idx` is None
         if rgb_idx is None:
-            self.hsi_button.setStyleSheet("background-color: orange;")  # Highlight style
+            self.hsi_button.setStyleSheet("background-color: darkgray;")  # Highlight style
         else:
             self.hsi_button.setStyleSheet("")  # Reset the style if not displaying the base image
 
         # Highlight the specific pseudo-RGB button if `rgb_idx` is not None
         if rgb_idx is not None and rgb_idx < len(self.pseudo_rgb_buttons):
-            self.pseudo_rgb_buttons[rgb_idx].setStyleSheet("background-color: orange;")  # Highlight style
+            self.pseudo_rgb_buttons[rgb_idx].setStyleSheet("background-color: darkgray;")  # Highlight style
         
         
     def show_context_menu(self, button, pos, img_idx, rgb_idx):
@@ -452,8 +452,8 @@ class CustomWidget(QWidget):
     #########################
         
     ## Functionality based methods
-        
-    ### Image loading
+    
+     ### Image loading
     def load_images(self):
         ''' Load images from file dialog '''
         logger.info("User initiated image loading.")
