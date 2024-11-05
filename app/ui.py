@@ -459,7 +459,7 @@ class CustomWidget(QWidget):
         logger.info("User initiated image loading.")
         
         # Open file dialog in the main thread
-        file_types = [("Image files", "*.png;*.jpg;*.tif;*.bmp;*.raw;*.dat")]
+        file_types = [("Image files","*.png;*.jpg;*.tif;*.bmp;*.raw;*.dat")]
         file_paths = filedialog.askopenfilenames(filetypes=file_types)
 
         if not file_paths:
@@ -519,7 +519,7 @@ class CustomWidget(QWidget):
 
         if dat_files_without_hdr:
             logger.warning(f"User needs to provide .hdr file for {len(dat_files_without_hdr)} .dat files.")
-            return dat_files_without_hdr, images
+            return dat_files_without_hdr, images, None, None
 
         if images:
             pseudo_rgb_images_per_image = [[] for _ in range(len(images))]
@@ -556,6 +556,11 @@ class CustomWidget(QWidget):
             else:
                 QMessageBox.warning(self, "No .hdr file selected", "Some .dat files were skipped.")
                 return
+        
+        if pseudo_rgb_images_per_image is None:
+            pseudo_rgb_images_per_image = [[] for _ in range(len(images))]
+        if masks_per_image is None:
+            masks_per_image = [[] for _ in range(len(images))]
 
         self.images = images
         self.pseudo_rgb_images_per_image = pseudo_rgb_images_per_image
