@@ -372,7 +372,13 @@ class CustomWidget(QWidget):
         # Clear all layers in the viewer and display the current image
         self.viewer.layers.clear()
         self.viewer.add_image(hyperspectral_image, colormap='gray', name=f"Image {index+1}")
-
+        
+        # Adjust axes order for hyperspectral images
+        if hyperspectral_image.ndim == 3:  
+            self.viewer.dims.order = (2, 0, 1) # Hyperspectral 
+        else:
+            self.viewer.dims.order = (0, 1, 2) # RGB image
+        
         # Update the pseudo-RGB buttons for the current image
         self.update_pseudo_rgb_buttons(index)
 
@@ -583,7 +589,6 @@ class CustomWidget(QWidget):
         ''' Handle errors that occur during image loading '''
         logger.error(f"Image loading error: {error_msg}")
         QMessageBox.warning(self, "Image Loading Error", f"An error occurred: {error_msg}")
-    
     
     ### Spectral Indexing  
     def compute_image(self):
