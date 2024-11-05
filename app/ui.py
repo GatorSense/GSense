@@ -575,6 +575,9 @@ class CustomWidget(QWidget):
         if len(self.images) > 1:
             self.previous_button.setEnabled(True)
             self.next_button.setEnabled(True)
+        else:
+            self.previous_button.setEnabled(False)
+            self.next_button.setEnabled(False)
 
     def handle_loading_error(self, error_msg):
         ''' Handle errors that occur during image loading '''
