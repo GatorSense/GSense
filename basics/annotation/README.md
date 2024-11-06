@@ -1,6 +1,0 @@
----
-icon: paintbrush-pencil
----
-
-# Annotation
-
