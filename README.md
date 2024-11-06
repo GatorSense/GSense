@@ -59,6 +59,20 @@ The tool provides functionality to load a batch of images (hyperspectral, multis
 
    Note: Installing PyTorch and torchvision with CUDA support is recommended.
 
+## Running the Application
+
+After installation, you can run the application using the following command:
+
+```bash
+gsense
+```
+
+or
+
+```bash
+python -m app.main
+```
+
 ## Usage
 
 ### Download custom model checkpoint for root segmentation and move to the 'ckpt' folder (Optional)
@@ -71,15 +85,9 @@ Download [Custom model checkpoint](https://uflorida-my.sharepoint.com/:u:/g/pers
 
 Note: Make sure to choose 'Vit-b' model type from the dropdown field in the Model Settings tab when using the downloaded custom model checkpoint.
 
-### Running the Application
-
-After installation, you can run the application using the following command:
-
-```sh
-gsense
-```
-
 ### Features and Instructions
+
+For a detailed how-to guide, refer to this comprehensive [Documentation](https://gatorsense-uf.gitbook.io/gsense_how_to_guide)
 
 Loading Images
 
