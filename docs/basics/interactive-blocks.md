@@ -1,5 +1,6 @@
 ---
 icon: hand-pointer
+hidden: true
 ---
 
 # Interactive blocks

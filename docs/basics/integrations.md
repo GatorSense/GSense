@@ -1,5 +1,6 @@
 ---
 icon: plug-circle-plus
+hidden: true
 ---
 
 # Integrations
