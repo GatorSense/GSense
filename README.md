@@ -87,7 +87,7 @@ Note: Make sure to choose 'Vit-b' model type from the dropdown field in the Mode
 
 ### Features and Instructions
 
-For a detailed how-to guide, refer to this comprehensive [Documentation](https://gatorsense-uf.gitbook.io/gsense_how_to_guide)
+For a detailed how-to guide, refer to this [Documentation](https://gatorsense-uf.gitbook.io/gsense_how_to_guide)
 
 Loading Images
 
