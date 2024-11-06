@@ -14,7 +14,7 @@
 
 * [Import](basics/import/README.md)
   * [Supported Image formats](basics/import/supported-image-formats.md)
-  * [Loading Images](basics/import/loading-images.md)
+  * [Hyperspectral images](basics/import/hyperspectral-images.md)
   * [RGB images](basics/import/rgb-images.md)
 * [Spectral Indexing](basics/markdown.md)
 * [Image Segmentation](basics/editor/README.md)
