@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Welcome](README.md)
+* [Welcome to GSense](README.md)
 
 ## Getting Started
 
