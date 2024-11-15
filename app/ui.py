@@ -414,6 +414,11 @@ class CustomWidget(QWidget):
         hyperspectral_image = self.images[self.current_image_index]
         self.viewer.layers.clear()
         self.viewer.add_image(hyperspectral_image, colormap='gray', name="Image")
+        # Adjust axes order for hyperspectral images
+        if hyperspectral_image.ndim == 3:  
+            self.viewer.dims.order = (2, 0, 1) # Hyperspectral 
+        else:
+            self.viewer.dims.order = (0, 1, 2) # RGB image
         self.save_button.setEnabled(False)
         self.set_spectral_mixing_enabled(True)
         self.update_button_highlight(None)
