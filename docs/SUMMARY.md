@@ -6,9 +6,9 @@
 
 * [Installation](getting-started/quickstart.md)
 * [User Interface](getting-started/publish-your-docs/README.md)
-  * [Load and navigate](getting-started/publish-your-docs/load-and-navigate.md)
-  * [Main functionalities](getting-started/publish-your-docs/main-functionalities.md)
+  * [Main tabs](getting-started/publish-your-docs/main-tabs.md)
   * [Layers](getting-started/publish-your-docs/layers.md)
+* [GSense Workflow](getting-started/gsense-workflow.md)
 
 ## Basics
 
