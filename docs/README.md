@@ -15,7 +15,7 @@ layout:
 
 # Welcome to GSense
 
-**GSense** is a comprehensive tool for the annotation of hyperspectral and RGB images. It is designed in particular to make the challenging process of hyperspectral image annotation simple and efficient. GSense is built on Napari, a powerful GUI based visualization and annotation package which helps us leverage its benefits and expand them with our own functionality.&#x20;
+[**GSense**](https://github.com/GatorSense/GSense?tab=readme-ov-file) is a comprehensive tool for the annotation of hyperspectral and RGB images. It is designed in particular to make the challenging process of hyperspectral image annotation simple and efficient. GSense is built on Napari, a powerful GUI based visualization and annotation package which helps us leverage its benefits and expand them with our own functionality.&#x20;
 
 In GSense, you can load multiple images at once, mix spectral channels to generate visual pseudo-RGB representations, segment images using Meta AI's Segment Anything Model with default or custom model checkpoints, and export annotation masks.&#x20;
 
