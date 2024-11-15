@@ -8,7 +8,7 @@
 * [User Interface](getting-started/publish-your-docs/README.md)
   * [Load and navigate](getting-started/publish-your-docs/load-and-navigate.md)
   * [Main functionalities](getting-started/publish-your-docs/main-functionalities.md)
-  * [Page](getting-started/publish-your-docs/page.md)
+  * [Layers](getting-started/publish-your-docs/layers.md)
 
 ## Basics
 
