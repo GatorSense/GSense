@@ -21,6 +21,7 @@ def main():
         viewer.open(bg_logo_path, rgb=True, name='Logo')
     else:
         # print("Logo image not found at:", bg_logo_path)
+        print("Logo image not found at:", bg_logo_path)
         viewer.add_text("Welcome to GSense", position=(0, 0), color='white', size=24)
 
     # Add Save Selected Layer button to the layer list dock widget
