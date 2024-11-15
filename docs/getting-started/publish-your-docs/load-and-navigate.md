@@ -1,6 +1,6 @@
 # Load and navigate
 
-<figure><img src="../../.gitbook/assets/image (15).png" alt="" width="180"><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (15).png" alt="" width="361"><figcaption></figcaption></figure>
 
 Click the `Load Images` <mark style="color:red;">button</mark> to select a batch of hyperspectral or RGB images to load into GSense. [supported-image-formats.md](../../basics/import/supported-image-formats.md "mention") are PNG, JPG, TIF, BMP, RAW, and DAT.
 

@@ -7,10 +7,21 @@ description: >-
 
 # Main functionalities
 
-<table><thead><tr><th width="247">Spectral Indexing</th><th width="231">Image Segmentation</th><th>Label Binarizer</th></tr></thead><tbody><tr><td><img src="../../.gitbook/assets/image (13).png" alt="" data-size="original"></td><td><img src="../../.gitbook/assets/image (14).png" alt="" data-size="original"></td><td><img src="../../.gitbook/assets/image (9).png" alt=""></td></tr></tbody></table>
+[markdown.md](../../basics/markdown.md "mention")
 
-**Spectral Indexing**: Apply spectral indices to images to generate pseudo-RGB (false-color) images for identifying characteristics or anomalies, useful in remote sensing.
+Apply spectral indices to images to generate pseudo-RGB (false-color) images for identifying characteristics or anomalies, useful in remote sensing.
 
-**Image Segmentation**: Partition generated pseudo-RGB images into meaningful segments for downstream computer vision applications.
+<figure><img src="../../.gitbook/assets/image (13).png" alt="" width="182"><figcaption></figcaption></figure>
 
-**Label Binarizer**: Convert categorical labels to binary labels for machine learning model training.
+[editor](../../basics/editor/ "mention")
+
+Partition generated pseudo-RGB images into meaningful segments for downstream computer vision applications.
+
+<figure><img src="../../.gitbook/assets/image (14).png" alt="" width="180"><figcaption></figcaption></figure>
+
+[binarizer.md](../../basics/binarizer.md "mention")
+
+The label binarizer functionality allows you to convert categorical labels in generated masks to binary labels for downstream machine learning model training purposes and other applications.
+
+<figure><img src="../../.gitbook/assets/image (9).png" alt="" width="180"><figcaption></figcaption></figure>
+
