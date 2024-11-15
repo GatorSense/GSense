@@ -37,7 +37,7 @@ def main():
 
     # Add custom widget for batch image loading, spectral mixing, and segmentation
     channel_selection_widget = CustomWidget(viewer, layer_list_dock, layer_controls_dock)
-    viewer.window.add_dock_widget(channel_selection_widget, area='right')
+    viewer.window.add_dock_widget(channel_selection_widget, area='right', name='Tools')
 
     napari.run()
 
