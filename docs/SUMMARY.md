@@ -6,9 +6,9 @@
 
 * [Installation](getting-started/quickstart.md)
 * [User Interface](getting-started/publish-your-docs/README.md)
+  * [Load and navigate](getting-started/publish-your-docs/load-and-navigate.md)
+  * [Main functionalities](getting-started/publish-your-docs/main-functionalities.md)
   * [Layers](getting-started/publish-your-docs/layers.md)
-  * [Layer controls](getting-started/publish-your-docs/layer-controls.md)
-  * [Navigation](getting-started/publish-your-docs/navigation.md)
 
 ## Basics
 

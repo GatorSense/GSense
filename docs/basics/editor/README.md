@@ -1,9 +1,13 @@
 ---
-description: with Meta AI's Segment Anything Model (SAM)
 icon: images
+description: with Meta AI's Segment Anything Model (SAM)
 ---
 
 # Image Segmentation
+
+The image segmentation feature employs Meta AI's Segment Anything Model (SAM) to partition images into distinct, meaningful segments. This state-of-the-art Vision Transformer based promptable segmentation algorithm with zero-shot generalization allows for precise isolation of image components.&#x20;
+
+###
 
 ### Usage
 
@@ -19,12 +23,3 @@ Note: Make sure to choose 'Vit-b' model type from the dropdown field in the Mode
 
 
 
-GitBook has a powerful block-based editor that allows you to seamlessly create, update, and enhance your content.
-
-<figure><img src="https://gitbookio.github.io/onboarding-template-images/editor-hero.png" alt=""><figcaption></figcaption></figure>
-
-### Writing content
-
-GitBook offers a range of block types for you to add to your content inline — from simple text and tables, to code blocks and more. These elements will make your pages more useful to readers, and offer extra information and context.
-
-Either start typing below, or press `/` to see a list of the blocks you can insert into your page.
