@@ -20,4 +20,4 @@ description: Using default model checkpoints with ViT-huge and ViT-base backbone
 
     Note: Initializing takes a longer time the first time.
 
-<figure><img src="../../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
