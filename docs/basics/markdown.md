@@ -14,3 +14,7 @@ Spectral indexing empowers users to apply mathematical functions to spectral ind
 2. Press `Enter` or click "Compute" to generate the images.
 3. Images with invalid indices will be skipped, and a warning will be displayed.
 
+**Multiple Pseudo-RGBs**:
+
+Users can compute multiple pseudo-RGB images per batch. Each set is saved and accessible via the interface.
+

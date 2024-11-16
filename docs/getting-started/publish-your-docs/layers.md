@@ -12,4 +12,4 @@ The Layer controls menu is especially useful for correcting the generated masks 
 
 This is what the Layers list and and layer controls look like for the `Image data.`
 
-<figure><img src="../.gitbook/assets/image (22).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (22).png" alt=""><figcaption></figcaption></figure>

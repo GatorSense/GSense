@@ -6,14 +6,15 @@
 
 * [Installation](getting-started/quickstart.md)
 * [GSense Workflow](getting-started/gsense-workflow.md)
-* [Features](getting-started/features.md)
-* [Layers](getting-started/layers.md)
+* [GSense Features](getting-started/gsense-features.md)
+* [Layers](getting-started/publish-your-docs/layers.md)
 
 ## Basics
 
-* [Load images](basics/load-images/README.md)
-  * [Hyperspectral images](basics/load-images/hyperspectral-images.md)
-  * [RGB images](basics/load-images/rgb-images.md)
+* [Load images](basics/import/README.md)
+  * [Hyperspectral images](basics/import/hyperspectral-images.md)
+  * [Viewer](basics/load-images/viewer.md)
+  * [RGB images](basics/import/rgb-images.md)
 * [Spectral Indexing](basics/markdown.md)
 * [Image Segmentation](basics/editor/README.md)
   * [Default models](basics/editor/default-models.md)
