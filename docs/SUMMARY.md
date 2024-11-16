@@ -5,17 +5,15 @@
 ## Getting Started
 
 * [Installation](getting-started/quickstart.md)
-* [User Interface](getting-started/publish-your-docs/README.md)
-  * [Main tabs](getting-started/publish-your-docs/main-functionalities.md)
-  * [Layers](getting-started/publish-your-docs/layers.md)
 * [GSense Workflow](getting-started/gsense-workflow.md)
+* [Features](getting-started/features.md)
+* [Layers](getting-started/layers.md)
 
 ## Basics
 
-* [Import](basics/import/README.md)
-  * [Supported Image formats](basics/import/supported-image-formats.md)
-  * [Hyperspectral images](basics/import/hyperspectral-images.md)
-  * [RGB images](basics/import/rgb-images.md)
+* [Load images](basics/load-images/README.md)
+  * [Hyperspectral images](basics/load-images/hyperspectral-images.md)
+  * [RGB images](basics/load-images/rgb-images.md)
 * [Spectral Indexing](basics/markdown.md)
 * [Image Segmentation](basics/editor/README.md)
   * [Default models](basics/editor/default-models.md)

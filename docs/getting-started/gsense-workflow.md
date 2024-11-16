@@ -4,7 +4,7 @@
 
 {% stepper %}
 {% step %}
-### [import](../basics/import/ "mention")
+### [load-images](../basics/load-images/ "mention")
 
 Load a batch of RGB or hyperspectral images.
 {% endstep %}
