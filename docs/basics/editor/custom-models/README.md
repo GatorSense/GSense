@@ -12,7 +12,7 @@ If you have your own SAM fine-tuned model checkpoint file (.pth) or would like t
 
     * In the **Model Settings** tab, select the model type (`vit-h` or `vit-b`) matching the model architecture of your custom checkpoint.
 
-    <figure><img src="../../../.gitbook/assets/image (2).png" alt="" width="364"><figcaption></figcaption></figure>
+    <figure><img src="../../../.gitbook/assets/image (2) (1).png" alt="" width="364"><figcaption></figcaption></figure>
 2. **Load the Custom Checkpoint**:
    * Click on the `Load Custom Checkpoint` button.
    * A file dialog will appear; browse and select your checkpoint file (`.pth` format).

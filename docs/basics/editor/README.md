@@ -11,7 +11,7 @@ The image segmentation feature integrates Meta AI's Segment Anything Model (SAM)
 GSense supports Vit-h, Vit-b SAM backbones and uses the hugging face transformers library. Downloading model checkpoints for default Vit-h and Vit-b weights is not required.
 {% endhint %}
 
-<figure><img src="../../.gitbook/assets/image (4).png" alt="" width="360"><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (4) (1).png" alt="" width="360"><figcaption></figcaption></figure>
 
 ### Usage
 

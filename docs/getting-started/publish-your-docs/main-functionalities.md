@@ -1,31 +1,53 @@
 ---
 description: >-
-  To enhance the analysis and annotation of loaded images, utilize the spectral
-  indexing, image segmentation, and label binarization functionalities of
-  GSense.
+  GSense provides 3 main functionalities for the analysis and annotation of
+  hyperspectral images - spectral indexing, image segmentation, and label
+  binarization.
 ---
 
 # Main tabs
 
-<figure><img src="../../.gitbook/assets/image (5).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (5) (1).png" alt=""><figcaption></figcaption></figure>
 
 
 
-[markdown.md](../../basics/markdown.md "mention")
+<details>
 
-Apply spectral indices to images to generate pseudo-RGB (false-color) images.
+<summary><a data-mention href="../../basics/markdown.md">markdown.md</a></summary>
 
-<figure><img src="../../.gitbook/assets/spectral indexing.png" alt="" width="363"><figcaption></figcaption></figure>
+Lets you compute pseudo-RGB images from spectral bands by referencing them in mathematical expressions using channel indices.
 
-[editor](../../basics/editor/ "mention")
+Example of acceptable expressions:
 
-Partition generated pseudo-RGB images into meaningful segments for downstream computer vision applications.
+```
+Red: ch[10] + ch[20]/4 + 3/ch[2]
+Green: ch[50]
+Blue: ch[2] - ch[6]
+```
 
-<figure><img src="../../.gitbook/assets/seg.png" alt="" width="360"><figcaption></figcaption></figure>
+Note: If an image in the loaded batch does not have the referenced channel data, pseudo-RGB image computation for that image is skipped.
 
-[binarizer.md](../../basics/binarizer.md "mention")
+<img src="../../.gitbook/assets/spectral indexing.png" alt="" data-size="original">
 
-The label binarizer functionality allows you to convert the labels in generated masks to binary labels for downstream machine learning model training purposes and other applications.&#x20;
+</details>
 
-<figure><img src="../../.gitbook/assets/bin.png" alt="" width="358"><figcaption></figcaption></figure>
+<details>
+
+<summary><a data-mention href="../../basics/editor/">editor</a></summary>
+
+Segment generated pseudo-RGB images using Meta AI's Segment Anything Model. Choose your model type and default or custom fine-tuned checkpoint to run segmentation with.
+
+![](<../../.gitbook/assets/image (2).png>)
+
+</details>
+
+<details>
+
+<summary><a data-mention href="../../basics/binarizer.md">binarizer.md</a></summary>
+
+We use SAM to generates all masks and the label binarizer helps reduce the labels to binary instead.
+
+![](<../../.gitbook/assets/image (5).png>)
+
+</details>
 
