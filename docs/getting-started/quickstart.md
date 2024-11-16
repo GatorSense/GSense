@@ -71,15 +71,9 @@ Please refer to the [PyTorch website](https://pytorch.org/get-started/locally/) 
 Installing PyTorch and torchvision with CUDA support is strongly recommended.
 {% endhint %}
 
-#### Running the Application
+### Running the Application
 
 After installation, you can run the application using the following command:
-
-{% hint style="info" %}
-Want to learn about writing content from scratch? Head to the [Basics](https://github.com/GitbookIO/onboarding-template/blob/main/getting-started/broken-reference/README.md) section to learn more.
-{% endhint %}
-
-### Running GSense
 
 ```
 gsense
@@ -90,8 +84,6 @@ or
 ```
 python -m app.main
 ```
-
-
 
 ### Interface
 
