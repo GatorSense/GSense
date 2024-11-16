@@ -13,7 +13,7 @@ Below are the supported file formats for Hyperspectral and RGB images.
 
 ### Hyperspectral (remote sensing) images
 
-### ENVI format
+#### ENVI format
 
 Load a batch of hyperspectral images by selecting multiple .raw or .dat files.&#x20;
 
@@ -27,9 +27,7 @@ If the selected files have a single common .hdr file, a file dialog will prompt 
 
 Images are then loaded successfully.
 
-
-
-### TIF/TIFF format
+#### TIF/TIFF format
 
 Load a batch of hyperspectral images in TIF/TIFF format by selecting multiple files from the file dialog.
 
