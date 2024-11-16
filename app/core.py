@@ -18,9 +18,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def validate_expression(expr):
     ''' Validate the input expression for pseudo-RGB computation '''
-    # Allow only numbers, ch[i] syntax, and basic operators (+, -, *, /)
-    pattern = r"^(ch\[\d+\](\s*[\+\-\*/]\s*ch\[\d+\])*)$"
+    # Allow numbers, ch[i] syntax, and basic operators (+, -, *, /)
+    pattern = r"^(ch\[\d+\]|\d+)(\s*[\+\-\*/]\s*(ch\[\d+\]|\d+))*$"
     return re.match(pattern, expr.strip()) is not None
+
 
 # Function to normalize hyperspectral data
 def normalize_channel(channel):

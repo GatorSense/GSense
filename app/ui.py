@@ -64,6 +64,14 @@ class CustomWidget(QWidget):
         self.r_input = QLineEdit(self)
         self.g_input = QLineEdit(self)
         self.b_input = QLineEdit(self)
+        
+        # Set tab order between the text fields
+        self.setTabOrder(self.r_input, self.g_input)
+        self.setTabOrder(self.g_input, self.b_input)
+
+        # Connect returnPressed for the `b_input` field only
+        self.b_input.returnPressed.connect(self.compute_image)
+    
         spectral_layout.addWidget(QLabel("Red channel expression:"))
         spectral_layout.addWidget(self.r_input)
         spectral_layout.addWidget(QLabel("Green channel expression:"))
@@ -292,9 +300,6 @@ class CustomWidget(QWidget):
 
     def delete_single_pseudo_rgb(self, img_idx, rgb_idx):
         """Delete a specific pseudo-RGB image for the selected image."""
-        # Remove the pseudo-RGB image
-        # len(self.pseudo_rgb_images_per_image) is # images
-        # len(self.pseudo_rgb_images_per_image[img_idx]) is # pseudo-RGB images for the current image
         
         if 0 <= img_idx < len(self.pseudo_rgb_images_per_image):
             if 0 <= rgb_idx < len(self.pseudo_rgb_images_per_image[img_idx]):
@@ -312,25 +317,25 @@ class CustomWidget(QWidget):
             if 0 <= rgb_idx < len(pseudo_rgb_images):
                 del self.pseudo_rgb_images_per_image[idx][rgb_idx]
 
-        # Remove pseudoRGB idx button for the current image
-        # Buttons for other images are updated when navigating between images (previous and next)
         self.update_pseudo_rgb_buttons(self.current_image_index)
         self.viewer.layers.clear()
-
-    def update_pseudo_rgb_buttons(self, img_idx):
-        """Update the pseudo-RGB buttons for the input image index. 
-        Function is called in show_image() which updates buttons for all images."""
         
+    def update_pseudo_rgb_buttons(self, img_idx):
+        """Update the pseudo-RGB buttons for the input image index."""
         # Clear existing buttons
         for button in self.pseudo_rgb_buttons:
             self.pseudo_rgb_buttons_layout.removeWidget(button)
             button.deleteLater()
         self.pseudo_rgb_buttons = []
 
-        # Recreate the pseudoRGB buttons for the input image index
+        # Add buttons only if there are valid pseudo-RGB images
         if self.pseudo_rgb_images_per_image[img_idx]:
             for i, _ in enumerate(self.pseudo_rgb_images_per_image[img_idx]):
-                self.create_pseudo_rgb_button(img_idx, i)               
+                self.create_pseudo_rgb_button(img_idx, i)
+        else:
+            logger.warning(f"No pseudo-RGB images to update for image index {img_idx}.")
+
+       
                 
     def create_pseudo_rgb_button(self, img_idx, rgb_idx):
         """Create a pseudo-RGB button and add right-click context menu."""
@@ -461,7 +466,6 @@ class CustomWidget(QWidget):
     
     
     #########################
-        
     ## Functionality based methods
     
      ### Image loading
@@ -542,7 +546,6 @@ class CustomWidget(QWidget):
     def handle_images_loaded(self, result):
         ''' Handle the result of image loading '''
         dat_files_without_hdr, images, pseudo_rgb_images_per_image, masks_per_image = result
-        logger.info(f"Images loaded successfully: {len(result[1])} images.")
 
         if dat_files_without_hdr:
             # User selects .hdr file for the .dat files that don't have them
@@ -576,6 +579,7 @@ class CustomWidget(QWidget):
         self.images = images
         self.pseudo_rgb_images_per_image = pseudo_rgb_images_per_image
         self.masks_per_image = masks_per_image
+        logger.info(f"Images loaded successfully: {len(result[1])} images.")
 
         # Show the first image
         if len(self.images) > 0:
@@ -599,7 +603,7 @@ class CustomWidget(QWidget):
     def compute_image(self):
         ''' Compute pseudo-RGB image based on user input '''        
         
-        logger.info(f"Computing pseudo-RGB image.")
+        logger.info(f"User initiated pseudo-RGB computation.")
         
         if not self.images:
             QMessageBox.warning(self, "No Images Loaded", "Please load images before computing a pseudo-RGB image.")
@@ -609,9 +613,15 @@ class CustomWidget(QWidget):
         g_expr = self.g_input.text()
         b_expr = self.b_input.text()
 
-        # Validate expressions before starting computation
+        # Check if any of the fields are empty
+        if not r_expr or not g_expr or not b_expr:
+            QMessageBox.warning(self, "Invalid Input", "Please fill all fields (Red, Green, and Blue expressions).")
+            logger.warning(f"Invalid input. Missing input in field(s). Expressions entered. Red: {r_expr} ; Green: {g_expr} ; Blue: {b_expr}")
+            return
+        
+        # Validate expressions
         if not validate_expression(r_expr) or not validate_expression(g_expr) or not validate_expression(b_expr):
-            QMessageBox.warning(self, "Invalid Input", "Please enter valid channel expressions using ch[i] (e.g., ch[0] + ch[1]).")
+            QMessageBox.warning(self, "Invalid Input", "Please enter valid channel expressions using ch[i] (e.g., ch[10]/ch[3] + ch[20]*2 + 5)")
             logger.warning(f"Invalid channel expressions entered. Red: {r_expr} ; Green: {g_expr} ; Blue: {b_expr}")
             return
         
@@ -632,101 +642,74 @@ class CustomWidget(QWidget):
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
         self.worker.result.connect(self.handle_pseudo_rgb_computed)
-        self.worker.error.connect(self.handle_computation_error)
+        # self.worker.error.connect(self.handle_computation_error)
 
         # Start the thread
         self.thread.start()
 
+
     
     def compute_pseudo_rgb_in_thread(self, r_expr, g_expr, b_expr):
-        ''' Compute pseudo-RGB image in a separate thread with error handling '''
-        try:
-            for idx, hyperspectral_data in enumerate(self.images):
-                channels = {i: hyperspectral_data[:, :, i] for i in range(hyperspectral_data.shape[-1])}
+        ''' Compute pseudo-RGB image in a separate thread '''
+        skipped_images = []
+        pseudo_rgb_results = [[] for _ in range(len(self.images))]  # Initialize list of lists for each image
+
+        for idx, hyperspectral_data in enumerate(self.images):
+            num_channels = hyperspectral_data.shape[-1]
+            channels = {i: hyperspectral_data[:, :, i] for i in range(num_channels)}
+            
+            try:
+                # Validate expressions before computation
+                red_channel = compute_channel(channels, r_expr)
+                green_channel = compute_channel(channels, g_expr)
+                blue_channel = compute_channel(channels, b_expr)
                 
-                # Safely compute each channel with try-except blocks
-                try:
-                    red_channel = compute_channel(channels, r_expr)
-                    green_channel = compute_channel(channels, g_expr)
-                    blue_channel = compute_channel(channels, b_expr)
-                except KeyError as e:
-                    raise ValueError(f"Channel index out of range in expression: {e}")
-                except Exception as e:
-                    raise RuntimeError(f"Error computing channel for image {idx+1}: {e}")
-
+                # Create pseudo-RGB image
                 pseudo_rgb_image = np.stack([red_channel, green_channel, blue_channel], axis=-1)
-                self.pseudo_rgb_images_per_image[idx].append(pseudo_rgb_image)
+                pseudo_rgb_results[idx].append(pseudo_rgb_image)  # Append new image to the list
+                logger.info(f"Computed pseudo-RGB image for image {idx + 1}")
 
-            return self.pseudo_rgb_images_per_image
+            except KeyError as e:
+                logger.error(f"Error computing channel for image {idx + 1}: {e}")
+                skipped_images.append(idx)
+            except Exception as e:
+                logger.error(f"Unexpected error for image {idx + 1}: {e}")
+                skipped_images.append(idx)
 
-        except Exception as e:
-            # Signal any errors encountered
-            self.worker.error.emit(str(e))
-
+        return pseudo_rgb_results, skipped_images
+        
+    
     def handle_pseudo_rgb_computed(self, result):
         ''' Handle the result of pseudo-RGB computation '''
-        self.pseudo_rgb_images_per_image = result
+        pseudo_rgb_results, skipped_images = result
+
+        # Append the new pseudo-RGB results to the existing list
+        for idx, results in enumerate(pseudo_rgb_results):
+            if results:
+                if idx >= len(self.pseudo_rgb_images_per_image):
+                    self.pseudo_rgb_images_per_image.append(results)
+                else:
+                    self.pseudo_rgb_images_per_image[idx].extend(results)
+
+        if skipped_images:
+            logger.warning(f"The following images were skipped due to invalid channels: {skipped_images}")
+            QMessageBox.warning(
+                self, 
+                "Channel Error", 
+                f"The following images were skipped due to invalid channels: {skipped_images}"
+            )
+
+        if all(not images for images in self.pseudo_rgb_images_per_image):
+            QMessageBox.critical(self, "Error", "Pseudo-RGB computation failed for all images.")
+            logger.error("No pseudo-RGB images were generated for any image.")
+            return
+
+        # Update buttons for the current image index
         self.update_pseudo_rgb_buttons(self.current_image_index)
-    
-    def handle_computation_error(self, error_msg):
-        ''' Handle errors that occur during computation '''
-        logger.error(f"Computation error: {error_msg}")
-        QMessageBox.warning(self, "Computation Error", f"An error occurred: {error_msg}")
 
-   
-    
-    # ### Spectral Indexing  
-    # def compute_image(self):
-    #     ''' Compute pseudo-RGB image based on user input '''        
-    #     r_expr = self.r_input.text()
-    #     g_expr = self.g_input.text()
-    #     b_expr = self.b_input.text()
-        
-    #     logger.info(f"Computing pseudo-RGB image. Red: {r_expr} ; Green: {g_expr} ; Blue: {b_expr}")      
 
-    #     # Create a QThread object
-    #     self.thread = QThread()
 
-    #     # Create a worker object for computation
-    #     self.worker = Worker(self.compute_pseudo_rgb_in_thread, r_expr, g_expr, b_expr)
-
-    #     # Move the worker to the thread
-    #     self.worker.moveToThread(self.thread)
-
-    #     # Connect signals and slots
-    #     self.thread.started.connect(self.worker.run)
-    #     self.worker.finished.connect(self.thread.quit)
-    #     self.worker.finished.connect(self.worker.deleteLater)
-    #     self.thread.finished.connect(self.thread.deleteLater)
-    #     self.worker.result.connect(self.handle_pseudo_rgb_computed)
-    #     self.worker.error.connect(self.handle_computation_error)
-
-    #     # Start the thread
-    #     self.thread.start()
-
-    # def compute_pseudo_rgb_in_thread(self, r_expr, g_expr, b_expr):
-    #     ''' Compute pseudo-RGB image in a separate thread '''
-    #     for idx, hyperspectral_data in enumerate(self.images):
-    #         channels = {i: hyperspectral_data[:, :, i] for i in range(hyperspectral_data.shape[-1])}
-    #         red_channel = compute_channel(channels, r_expr)
-    #         green_channel = compute_channel(channels, g_expr)
-    #         blue_channel = compute_channel(channels, b_expr)
-    #         pseudo_rgb_image = np.stack([red_channel, green_channel, blue_channel], axis=-1)
-    #         self.pseudo_rgb_images_per_image[idx].append(pseudo_rgb_image)
-
-    #     return self.pseudo_rgb_images_per_image
-
-    # def handle_pseudo_rgb_computed(self, result):
-    #     ''' Handle the result of pseudo-RGB computation '''
-    #     self.pseudo_rgb_images_per_image = result
-    #     self.update_pseudo_rgb_buttons(self.current_image_index)
-        
-    # def handle_computation_error(self, error_msg):
-    #     ''' Handle errors that occur during computation '''
-    #     logger.error(f"Computation error: {error_msg}")
-    #     QMessageBox.warning(self, "Computation Error", f"An error occurred: {error_msg}")
-    
-    
+ 
     ### SAM Model Settings
     def initialize_model(self):
         ''' Initialize Segment Anything Model based on user input '''
