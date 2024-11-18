@@ -7,7 +7,7 @@ Upon loading, the first image in the batch will be displayed in the **viewer** b
 
 <figure><img src="../../.gitbook/assets/Untitled1.png" alt=""><figcaption></figcaption></figure>
 
-### Short visual demo of viewer with hyperspectral images
+Short visual demo of viewer with hyperspectral images
 
 {% embed url="https://youtu.be/4ReiFUQu6dE" %}
 

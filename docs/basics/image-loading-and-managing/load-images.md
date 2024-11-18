@@ -1,6 +1,6 @@
 # Load images
 
-## Hyperspectral (remote sensing) images
+### Hyperspectral (remote sensing) images
 
 #### ENVI format
 
@@ -21,7 +21,7 @@
 * [ ] Load a batch of hyperspectral images in TIF/TIFF format by selecting multiple files from the file dialog.
 * [ ] Images are loaded successfully. Navigate through the loaded batch of images using the `Previous Image` and `Next Image` buttons.
 
-## RGB Images
+### RGB Images
 
 * [ ] Click the `Load Images` button in the main interface.
 * [ ] Select one or multiple image files from your system of format types: `.png`, `.jpg` or `.bmp`
