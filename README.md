@@ -1,4 +1,4 @@
-# GSense
+# GSense ([Documentation](https://gatorsense-uf.gitbook.io/gsense_how_to_guide))
 
 GSense is a GUI-based tool for the analysis and annotation of hyperspectral images and RGB images leveraging [Napari](https://napari.org/) and [Segment Anything Model (SAM)](https://github.com/facebookresearch/segment-anything).
 
