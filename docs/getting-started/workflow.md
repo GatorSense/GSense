@@ -10,7 +10,7 @@ Load a batch of RGB or hyperspectral images.
 {% endstep %}
 
 {% step %}
-### [markdown.md](../basics/markdown.md "mention")
+### [spectral-indexing.md](../basics/spectral-indexing.md "mention")
 
 Compute pseudo-RGB for hyperspectral data.
 
@@ -18,7 +18,7 @@ Compute pseudo-RGB for hyperspectral data.
 {% endstep %}
 
 {% step %}
-### [editor](../basics/editor/ "mention")
+### [image-segmentation](../basics/image-segmentation/ "mention")
 
 Segment images using Segment Anything Model (SAM) to get all masks.
 

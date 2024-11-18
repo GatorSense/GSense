@@ -31,7 +31,7 @@ Once the model is initialized, you can now run segmentation:
 **Prerequisites:**
 
 * Ensure you have [loaded images](../image-loading-and-managing/) (either RGB or hyperspectral).&#x20;
-* Ensure you have generated pseudo-RGB images using the [markdown.md](../markdown.md "mention")tab.
+* Ensure you have generated pseudo-RGB images using the [spectral-indexing.md](../spectral-indexing.md "mention")tab.
 
 1.  **Run Segmentation**:
 
