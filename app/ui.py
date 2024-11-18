@@ -127,6 +127,7 @@ class CustomWidget(QWidget):
         self.binarize_button = QPushButton("Binarize Labels", self)
         self.binarize_button.clicked.connect(self.binarize_labels)
         binarize_layout.addWidget(self.binarize_button)
+        self.binarize_button.setEnabled(False) # Initially disabled
         
         self.binarize_status_label = QLabel(self)  # Label to show the status
         binarize_layout.addWidget(self.binarize_status_label)
@@ -190,7 +191,7 @@ class CustomWidget(QWidget):
         self.save_button.setIcon(save_icon)
         self.save_button.setToolTip("Save selected layer from Layers menu")
         self.save_button.clicked.connect(lambda: save_selected_layer(self.viewer))
-        self.save_button.setEnabled(False)  # Initially disabled
+        self.save_button.setEnabled(False)  
         save_buttons_layout.addWidget(self.save_button, Qt.AlignRight)
 
         # Save All Layers Button
@@ -876,8 +877,6 @@ class CustomWidget(QWidget):
                 ]
                 for image_masks in self.masks_per_image
             ]
-
-            
             # Display the current image and its mask
             self.show_image_and_mask(self.current_image_index, 0)
             self.update_button_highlight(0)
