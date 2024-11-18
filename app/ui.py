@@ -31,26 +31,28 @@ class CustomWidget(QWidget):
         self.images = []  # List to hold loaded images
         self.file_paths = []  # List to hold file paths of loaded images
         self.current_image_index = 0  # Index of the current image being displayed
-        self.current_rgb_idx = 0  # Index of the currently displayed pseudo-RGB index
-        self.pseudo_rgb_images_per_image = []  # Store pseudoRGB images for each loaded image
+        self.current_rgb_idx = 0  # Index of the currently displayed pseudo RGB image
+        self.pseudo_rgb_images_per_image = []  # Store pseudo RGB images for each loaded image
         self.masks_per_image = []  # Store segmentation masks for each loaded image
+        self.binarized_masks_per_image = []  # Store binarized masks for each loaded image
 
-        self.model = None
-        self.processor = None
-        self.pseudo_rgb_buttons = []
-        self.mask_generator = None
-        self.upscaled_masks = None  # Cached low-res masks for thresholding
-        self.threshold_checkbox = None
-        self.threshold_slider = None
-        self.threshold_value = None
-        self.upscaled_masks_per_image = []   
+        self.model = None   # SAM model
+        self.processor = None       # SAM processor
+        self.pseudo_rgb_buttons = []    # List to hold pseudo-RGB buttons#
+        self.mask_generator = None      # SAM pipeline for mask generation
+        self.upscaled_masks = None      # Cached low-res masks for thresholding
+        self.threshold_checkbox = None  # Checkbox for enabling thresholding
+        self.threshold_slider = None    # Slider for thresholding
+        self.threshold_value = None     # Threshold value for binarization
+        self.upscaled_masks_per_image = []     # Store upscaled masks for each loaded image
             
-
-        layout = QVBoxLayout()        
-        tab_widget = QTabWidget()
+            
         
-        # Create a horizontal layout for buttons you want to move to the bottom
-        self.bottom_layout = QHBoxLayout()
+        layout = QVBoxLayout()        # Main widget layout
+        tab_widget = QTabWidget()     # Tab widget for main functionalities - Spectral Indexing, SAM Model Settings, Binarize Labels
+        
+        
+        self.bottom_layout = QHBoxLayout() # Layout for navigation buttons
         
         # Add Load Images button
         self.load_images_btn = QPushButton("Load Images", self)
@@ -68,8 +70,11 @@ class CustomWidget(QWidget):
         # Set tab order between the text fields
         self.setTabOrder(self.r_input, self.g_input)
         self.setTabOrder(self.g_input, self.b_input)
+        self.setTabOrder(self.b_input, self.r_input)
 
-        # Connect returnPressed for the `b_input` field only
+        # so user can press enter to compute
+        self.r_input.returnPressed.connect(self.compute_image)
+        self.g_input.returnPressed.connect(self.compute_image)
         self.b_input.returnPressed.connect(self.compute_image)
     
         spectral_layout.addWidget(QLabel("Red channel expression:"))
@@ -85,7 +90,7 @@ class CustomWidget(QWidget):
         note.setFont(tiny_font)
         spectral_layout.addWidget(note)
         
-        self.compute_button = QPushButton("Compute PseudoRGB", self)
+        self.compute_button = QPushButton("Compute", self)
         self.compute_button.clicked.connect(self.compute_image)
         spectral_layout.addWidget(self.compute_button)
 
@@ -96,8 +101,8 @@ class CustomWidget(QWidget):
         model_layout = QVBoxLayout()
         
         self.model_type_combo = QComboBox(self)
-        self.model_type_combo.addItems(["vit-h", "vit-b"])
-        model_layout.addWidget(QLabel("Select Model Type (ViT):"))
+        self.model_type_combo.addItems(["ViT-huge", "ViT-base"])
+        model_layout.addWidget(QLabel("Select segmentation model type (ViT):"))
         model_layout.addWidget(self.model_type_combo)
         
         self.checkpoint_combo = QComboBox(self)
@@ -134,7 +139,7 @@ class CustomWidget(QWidget):
         
         binarize_widget.setLayout(binarize_layout)
 
-        # Add tabs to the QTabWidget
+        # add as tabs
         tab_widget.addTab(spectral_mixing_widget, "Spectral Indexing")
         tab_widget.addTab(model_settings_widget, "Model Settings")
         tab_widget.addTab(binarize_widget, "Binarize Labels")
@@ -142,7 +147,6 @@ class CustomWidget(QWidget):
 
         layout.addWidget(tab_widget, 0, Qt.AlignTop)
         
-        self.binarized_masks_per_image = []  # Store binarized masks for each loaded image
         
         ######### Segmentation Button #########
 
@@ -234,37 +238,37 @@ class CustomWidget(QWidget):
     
     def show_next_image(self):
         logger.info("Next button clicked.")
-        # Save the current pseudo-RGB images and masks before navigating
+        # Save the current pseudo RGB images and masks before navigating
         self.save_current_pseudo_rgb_and_masks()
         # Move to the next image and loop
         self.current_image_index = (self.current_image_index + 1) % len(self.images)
+        
+        #If masks are present, show the pseudo RGB image and mask, else show Image
         if len(self.masks_per_image[self.current_image_index]) > 0:
             self.update_pseudo_rgb_buttons(self.current_image_index)
             self.show_image_and_mask(self.current_image_index, 0)
-            self.update_button_highlight(0) # This should highlight the first pseudoRGB button of current image index
+            self.update_button_highlight(0) # highlight first pseudo RGB button of current image index
         else:
             self.show_image(self.current_image_index)
-            self.update_button_highlight(None) # This should highlight the "Image" button of current image index 
+            self.update_button_highlight(None) # highlight "Image" button of current image index 
 
     def show_previous_image(self):
         logger.info("Previous button clicked.")
         # Save the current pseudo-RGB images and masks before navigating
         self.save_current_pseudo_rgb_and_masks()
-
         # Move to the previous image and loop
-        self.current_image_index = (self.current_image_index - 1) % len(self.images)
-        
+        self.current_image_index = (self.current_image_index - 1) % len(self.images) 
         if len(self.masks_per_image[self.current_image_index]) > 0:
             self.update_pseudo_rgb_buttons(self.current_image_index)
             self.show_image_and_mask(self.current_image_index, 0)
-            self.update_button_highlight(0) # This should highlight the first pseudoRGB button of current image index
+            self.update_button_highlight(0) # highlight first pseudo RGB button of current image index
         else:
             self.show_image(self.current_image_index)
-            self.update_button_highlight(None) # This should highlight the "Image" button of current image index 
+            self.update_button_highlight(None) # highlight "Image" button of current image index 
 
             
     def update_button_highlight(self, rgb_idx):
-        """Highlight the button corresponding to the input image and pseudo-RGB index."""
+        '''Highlight the button corresponding to the input image and pseudo-RGB index.'''
         # Clear the styles of all pseudo-RGB buttons
         for button in self.pseudo_rgb_buttons:
             button.setStyleSheet("")  # Reset to default style
@@ -280,20 +284,6 @@ class CustomWidget(QWidget):
             self.pseudo_rgb_buttons[rgb_idx].setStyleSheet("background-color: darkgray;")  # Highlight style
         
         
-    def show_context_menu(self, button, pos, img_idx, rgb_idx):
-        """Show a context menu with delete options when right-clicking a pseudo-RGB button."""
-        menu = QMenu(self)
-        # Option 1: Delete this specific pseudo-RGB image for the current image
-        delete_single_action = menu.addAction("Delete this pseudo-RGB image")
-        delete_single_action.triggered.connect(lambda: self.delete_single_pseudo_rgb(img_idx, rgb_idx))
-
-        # Option 2: Delete this pseudo-RGB image for all batch images
-        delete_all_action = menu.addAction("Delete this pseudo-RGB image for all images")
-        delete_all_action.triggered.connect(lambda: self.delete_pseudo_rgb_for_all_images(rgb_idx))
-
-        # Show the context menu
-        menu.exec_(button.mapToGlobal(pos))
-        
     def set_spectral_mixing_enabled(self, enabled):
         self.r_input.setEnabled(enabled)
         self.g_input.setEnabled(enabled)
@@ -301,46 +291,44 @@ class CustomWidget(QWidget):
         self.compute_button.setEnabled(enabled)
 
     def delete_single_pseudo_rgb(self, img_idx, rgb_idx):
-        """Delete a specific pseudo-RGB image for the selected image."""
-        
+        '''Delete a specific pseudo-RGB image for the selected image.'''
         if 0 <= img_idx < len(self.pseudo_rgb_images_per_image):
             if 0 <= rgb_idx < len(self.pseudo_rgb_images_per_image[img_idx]):
                 del self.pseudo_rgb_images_per_image[img_idx][rgb_idx]
 
         # Remove pseudoRGB idx button 
-        # Button numbers gets updated after deletion (rgb_idx is not needed for this)
+        # Button numbers get updated after deletion (rgb_idx is not needed for this)
         self.update_pseudo_rgb_buttons(img_idx)
         self.viewer.layers.clear()
+        logger.info(f"Deleted {img_idx+1}-{rgb_idx+1}.")
 
     def delete_pseudo_rgb_for_all_images(self, rgb_idx):
-        """Delete a specific pseudo-RGB image for all batch images."""
+        '''Delete a specific pseudo-RGB image for all batch images.'''
         # Remove the pseudo-RGB image for each image in the batch
         for idx, pseudo_rgb_images in enumerate(self.pseudo_rgb_images_per_image):
             if 0 <= rgb_idx < len(pseudo_rgb_images):
                 del self.pseudo_rgb_images_per_image[idx][rgb_idx]
-
         self.update_pseudo_rgb_buttons(self.current_image_index)
         self.viewer.layers.clear()
+        logger.info(f"Deleted pseudo RGB {rgb_idx+1} for all images.")
         
     def update_pseudo_rgb_buttons(self, img_idx):
-        """Update the pseudo-RGB buttons for the input image index."""
+        '''Update the pseudo-RGB buttons for the input image index.'''
         # Clear existing buttons
         for button in self.pseudo_rgb_buttons:
             self.pseudo_rgb_buttons_layout.removeWidget(button)
             button.deleteLater()
         self.pseudo_rgb_buttons = []
 
-        # Add buttons only if there are valid pseudo-RGB images
+        # Add buttons only if there are valid pseudo RGB images
         if self.pseudo_rgb_images_per_image[img_idx]:
             for i, _ in enumerate(self.pseudo_rgb_images_per_image[img_idx]):
                 self.create_pseudo_rgb_button(img_idx, i)
         else:
             logger.warning(f"No pseudo-RGB images to update for image index {img_idx}.")
-
-       
                 
     def create_pseudo_rgb_button(self, img_idx, rgb_idx):
-        """Create a pseudo-RGB button and add right-click context menu."""
+        '''Create a pseudo RGB button and add right-click context menu.'''
         button = QPushButton(f"Pseudo-RGB {img_idx + 1}-{rgb_idx + 1}", self)
         button.clicked.connect(lambda: self.show_pseudo_rgb_image(img_idx, rgb_idx))
         
@@ -351,31 +339,46 @@ class CustomWidget(QWidget):
         self.pseudo_rgb_buttons.append(button)
         self.pseudo_rgb_buttons_layout.addWidget(button)
         
-    def show_pseudo_rgb_image(self, img_idx, rgb_idx):
-        ''' Display the pseudo-RGB image for the selected image and RGB index '''
-        pseudo_rgb_image = self.pseudo_rgb_images_per_image[img_idx][rgb_idx]
+    def show_context_menu(self, button, pos, img_idx, rgb_idx):
+        '''Create a context menu with delete options for right click on pseudo RGB buttons.'''
+        menu = QMenu(self)
+        # Option 1: Delete this specific pseudo RGB image for the current image
+        delete_single_action = menu.addAction("Delete this pseudo-RGB image")
+        delete_single_action.triggered.connect(lambda: self.delete_single_pseudo_rgb(img_idx, rgb_idx))
+
+        # Option 2: Delete this pseudo RGB image for all batch images
+        delete_all_action = menu.addAction("Delete this pseudo-RGB image for all images")
+        delete_all_action.triggered.connect(lambda: self.delete_pseudo_rgb_for_all_images(rgb_idx))
+
+        # Show the context menu
+        menu.exec_(button.mapToGlobal(pos))
         
+    def show_pseudo_rgb_image(self, img_idx, rgb_idx):
+        ''' Display the pseudo-RGB image for the selected image and RGB index.
+        Called only when pseudo RGB button is pressed.'''
+        
+        pseudo_rgb_image = self.pseudo_rgb_images_per_image[img_idx][rgb_idx]
         self.save_current_pseudo_rgb_and_masks()
 
         self.viewer.layers.clear()
-        self.viewer.add_image(pseudo_rgb_image, rgb=True, name=f"Pseudo-RGB Image {img_idx + 1}-{rgb_idx + 1}")
+        self.viewer.add_image(pseudo_rgb_image, rgb=True, name=f"Pseudo RGB Image {img_idx + 1}-{rgb_idx + 1}")
         self.save_button.setEnabled(True)
 
         # Enable the Image button to allow switching back to the actual image
         self.hsi_button.setVisible(True)
         self.hsi_button.setEnabled(True)
         
+        # Update current rgb index
         self.current_rgb_idx = rgb_idx
 
         if len(self.masks_per_image[img_idx]) > rgb_idx:
             self.show_image_and_mask(img_idx, rgb_idx)
-            
+
         self.update_button_highlight(rgb_idx)
             
             
     def show_image(self, index):
         ''' Display the image at the given index '''
-        
         ## This is to handle when index = 0 after loading the images
         self.current_image_index = index
         hyperspectral_image = self.images[index]
@@ -398,31 +401,22 @@ class CustomWidget(QWidget):
         self.hsi_button.setEnabled(True)  
 
     def save_current_pseudo_rgb_and_masks(self):
-        """Save the current pseudo-RGB images, masks, and binarized mask layers before navigating to a new image."""
+        '''Save the current pseudo-RGB images, masks, and binarized mask layers before navigating to a new image.'''
         
         for rgb_idx, _ in enumerate(self.pseudo_rgb_buttons):
-            # Construct names for pseudo-RGB, masks, and binarized layers
+            # names of pseudo-RGB, masks, and binarized layers
             pseudo_rgb_layer_name = f"Pseudo-RGB Image {self.current_image_index + 1}-{rgb_idx + 1}"
             mask_layer_name = f"Mask Layer {self.current_image_index + 1}-{rgb_idx + 1}"
             binarized_layer_name = f"Binarized {mask_layer_name}"
 
-            # Initialize placeholders for current layers
-            pseudo_rgb_image = None
-            mask_layer = None
-            binarized_layer = None
-
-            # Traverse viewer layers to find matching layers
             for layer in self.viewer.layers:
                 if layer.name == pseudo_rgb_layer_name:
-                    pseudo_rgb_image = layer.data
-                    self.pseudo_rgb_images_per_image[self.current_image_index][rgb_idx] = pseudo_rgb_image
+                    self.pseudo_rgb_images_per_image[self.current_image_index][rgb_idx] = layer.data
                 elif layer.name == mask_layer_name:
-                    mask_layer = layer.data
-                    self.masks_per_image[self.current_image_index][rgb_idx] = mask_layer
+                    self.masks_per_image[self.current_image_index][rgb_idx] = layer.data
                 elif layer.name == binarized_layer_name:
-                    binarized_layer = layer.data
                     # print("saving binarized_layer of rgb idx: ", rgb_idx)
-                    self.binarized_masks_per_image[self.current_image_index][rgb_idx] = binarized_layer
+                    self.binarized_masks_per_image[self.current_image_index][rgb_idx] = layer.data
 
 
     def show_hyperspectral_image(self):
