@@ -21,3 +21,10 @@ description: Using default model checkpoints with ViT-huge and ViT-base backbone
     Note: Initializing takes a longer time the first time.
 
 <figure><img src="../../.gitbook/assets/image (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+
+
+
+Video demo link to segment images with default SAM ViT-h and ViT-b models:
+
+{% embed url="https://youtu.be/uBdL8lptTIM" %}
+

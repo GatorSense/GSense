@@ -26,6 +26,8 @@ Segment images using Segment Anything Model (SAM) to get all masks.
 2. Run segmentation.
 
 {% embed url="https://youtu.be/uBdL8lptTIM" %}
+
+{% embed url="https://youtu.be/2B-SyXIpiHQ" %}
 {% endstep %}
 
 {% step %}
@@ -44,5 +46,18 @@ Binarize labels
 ### [export.md](../basics/export.md "mention")
 
 Save masks and computed pseudo-RGB images
+
+
+
+**Watch the below video for a complete workflow:**
+
+* Loading 2 hyperspectral images of TIFF file format, 1 jpg RGB image
+* Run Segmentation with ViT-h default model
+* Binarize generated masks
+* Export selected/all layers
+
+{% embed url="https://youtu.be/ocnVNgcP190" %}
+
+
 {% endstep %}
 {% endstepper %}

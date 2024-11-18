@@ -30,5 +30,9 @@ Load the custom model checkpoint by clicking on the `Load Custom Checkpoint` but
 * After loading the checkpoint, click the `Initialize Model` button.
 * A message box will confirm if the model initialization is successful.
 
+Video demo link to segment images with SAM ViT-b model checkpoint obtained from fine tuning with root images:
+
+{% embed url="https://youtu.be/2B-SyXIpiHQ" %}
+
 
 
