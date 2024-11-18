@@ -140,7 +140,8 @@ class CustomWidget(QWidget):
         
 
         layout.addWidget(tab_widget, 0, Qt.AlignTop)
-
+        
+        self.binarized_masks_per_image = []  # Store binarized masks for each loaded image
         
         ######### Segmentation Button #########
 
@@ -336,6 +337,7 @@ class CustomWidget(QWidget):
             logger.warning(f"No pseudo-RGB images to update for image index {img_idx}.")
 
        
+                
     def create_pseudo_rgb_button(self, img_idx, rgb_idx):
         """Create a pseudo-RGB button and add right-click context menu."""
         button = QPushButton(f"Pseudo-RGB {img_idx + 1}-{rgb_idx + 1}", self)
@@ -351,21 +353,22 @@ class CustomWidget(QWidget):
     def show_pseudo_rgb_image(self, img_idx, rgb_idx):
         ''' Display the pseudo-RGB image for the selected image and RGB index '''
         pseudo_rgb_image = self.pseudo_rgb_images_per_image[img_idx][rgb_idx]
+        
+        self.save_current_pseudo_rgb_and_masks()
 
         self.viewer.layers.clear()
         self.viewer.add_image(pseudo_rgb_image, rgb=True, name=f"Pseudo-RGB Image {img_idx + 1}-{rgb_idx + 1}")
         self.save_button.setEnabled(True)
-        
-        self.current_rgb_idx = rgb_idx
-        print(f"rgb button clicked: {rgb_idx}")
 
         # Enable the Image button to allow switching back to the actual image
         self.hsi_button.setVisible(True)
         self.hsi_button.setEnabled(True)
+        
+        self.current_rgb_idx = rgb_idx
 
         if len(self.masks_per_image[img_idx]) > rgb_idx:
             self.show_image_and_mask(img_idx, rgb_idx)
-        
+            
         self.update_button_highlight(rgb_idx)
             
             
@@ -394,27 +397,32 @@ class CustomWidget(QWidget):
         self.hsi_button.setEnabled(True)  
 
     def save_current_pseudo_rgb_and_masks(self):
-        ''' Save the current pseudo-RGB images and masks before navigating to a new image '''
+        """Save the current pseudo-RGB images, masks, and binarized mask layers before navigating to a new image."""
         
-        # Get the current pseudo-RGB images and corresponding masks from the viewer
         for rgb_idx, _ in enumerate(self.pseudo_rgb_buttons):
-            # Retrieve the pseudo-RGB image and corresponding mask for each button
+            # Construct names for pseudo-RGB, masks, and binarized layers
             pseudo_rgb_layer_name = f"Pseudo-RGB Image {self.current_image_index + 1}-{rgb_idx + 1}"
             mask_layer_name = f"Mask Layer {self.current_image_index + 1}-{rgb_idx + 1}"
+            binarized_layer_name = f"Binarized {mask_layer_name}"
 
+            # Initialize placeholders for current layers
             pseudo_rgb_image = None
             mask_layer = None
+            binarized_layer = None
 
-            # Find layers in the viewer
+            # Traverse viewer layers to find matching layers
             for layer in self.viewer.layers:
                 if layer.name == pseudo_rgb_layer_name:
                     pseudo_rgb_image = layer.data
                     self.pseudo_rgb_images_per_image[self.current_image_index][rgb_idx] = pseudo_rgb_image
                 elif layer.name == mask_layer_name:
                     mask_layer = layer.data
-                    # print("Data: ", mask_layer)
                     self.masks_per_image[self.current_image_index][rgb_idx] = mask_layer
-      
+                elif layer.name == binarized_layer_name:
+                    binarized_layer = layer.data
+                    # print("saving binarized_layer of rgb idx: ", rgb_idx)
+                    self.binarized_masks_per_image[self.current_image_index][rgb_idx] = binarized_layer
+
 
     def show_hyperspectral_image(self):
         ''' Display the hyperspectral image for the current image index '''
@@ -436,9 +444,12 @@ class CustomWidget(QWidget):
         pseudo_rgb_image = self.pseudo_rgb_images_per_image[img_idx][rgb_idx]
         mask_set = self.masks_per_image[img_idx][rgb_idx]
 
-        self.viewer.layers.clear()
-        self.viewer.add_image(pseudo_rgb_image, rgb=True, name=f"Pseudo-RGB Image {img_idx + 1}-{rgb_idx + 1}")
-
+        try:
+            self.viewer.layers.clear()
+            self.viewer.add_image(pseudo_rgb_image, rgb=True, name=f"Pseudo-RGB Image {img_idx + 1}-{rgb_idx + 1}")
+        except Exception as e:
+            logger.error(f"Failed to clear layers: {e}")
+        
         # Create a combined mask to display
         combined_mask = np.zeros(pseudo_rgb_image.shape[:2], dtype=np.int32)
 
@@ -465,12 +476,19 @@ class CustomWidget(QWidget):
         # Display the combined mask
         self.viewer.add_labels(combined_mask, name=f"Mask Layer {img_idx + 1}-{rgb_idx + 1}")
         self.display_label_range()
-    
-    
+        
+        if hasattr(self, 'binarized_masks_per_image') and len(self.binarized_masks_per_image) > img_idx:
+            if len(self.binarized_masks_per_image[img_idx]) > rgb_idx:
+                # print("testing show_image_and_mask passing binarized layer condition")
+                binarized_layer = self.binarized_masks_per_image[img_idx][rgb_idx]
+                if binarized_layer is not None and len(np.unique(binarized_layer)) > 1:
+                    self.viewer.add_labels(binarized_layer, name=f"Binarized Mask Layer {img_idx + 1}-{rgb_idx + 1}")
+
+        
     #########################
     ## Functionality based methods
     
-     ### Image loading
+    ### Image loading
     def load_images(self):
         ''' Load images from file dialog '''
         logger.info("User initiated image loading.")
@@ -503,6 +521,7 @@ class CustomWidget(QWidget):
         images = []
         pseudo_rgb_images_per_image = []
         masks_per_image = []
+        binarized_masks_per_image = []
 
         # Store all paths that lack corresponding .hdr files
         dat_files_without_hdr = []
@@ -536,18 +555,19 @@ class CustomWidget(QWidget):
 
         if dat_files_without_hdr:
             logger.warning(f"User needs to provide .hdr file for {len(dat_files_without_hdr)} .dat files.")
-            return dat_files_without_hdr, images, None, None
+            return dat_files_without_hdr, images, None, None, None
 
         if images:
             pseudo_rgb_images_per_image = [[] for _ in range(len(images))]
             masks_per_image = [[] for _ in range(len(images))]
+            binarized_masks_per_image = [[] for _ in range(len(self.images))]
 
-        return None, images, pseudo_rgb_images_per_image, masks_per_image
+        return None, images, pseudo_rgb_images_per_image, masks_per_image, binarized_masks_per_image
 
 
     def handle_images_loaded(self, result):
         ''' Handle the result of image loading '''
-        dat_files_without_hdr, images, pseudo_rgb_images_per_image, masks_per_image = result
+        dat_files_without_hdr, images, pseudo_rgb_images_per_image, masks_per_image, binarized_masks_per_image = result
 
         if dat_files_without_hdr:
             # User selects .hdr file for the .dat files that don't have them
@@ -577,10 +597,13 @@ class CustomWidget(QWidget):
             pseudo_rgb_images_per_image = [[] for _ in range(len(images))]
         if masks_per_image is None:
             masks_per_image = [[] for _ in range(len(images))]
+        if binarized_masks_per_image is None:
+            binarized_masks_per_image = [[] for _ in range(len(images))]
 
         self.images = images
         self.pseudo_rgb_images_per_image = pseudo_rgb_images_per_image
         self.masks_per_image = masks_per_image
+        self.binarized_masks_per_image = binarized_masks_per_image
         logger.info(f"Images loaded successfully: {len(result[1])} images.")
 
         # Show the first image
@@ -708,6 +731,8 @@ class CustomWidget(QWidget):
 
         # Update buttons for the current image index
         self.update_pseudo_rgb_buttons(self.current_image_index)
+
+
 
  
     ### SAM Model Settings
@@ -843,6 +868,16 @@ class CustomWidget(QWidget):
             self.masks_per_image = segmented_masks_list
             self.binarize_button.setEnabled(True)
             
+            # Initialize binarized_masks_per_image with zeros
+            self.binarized_masks_per_image = [
+                [
+                    np.zeros(mask.shape[:2], dtype=np.uint8) if isinstance(mask, np.ndarray) else None
+                    for mask in image_masks
+                ]
+                for image_masks in self.masks_per_image
+            ]
+
+            
             # Display the current image and its mask
             self.show_image_and_mask(self.current_image_index, 0)
             self.update_button_highlight(0)
@@ -871,6 +906,8 @@ class CustomWidget(QWidget):
         ''' Binarize the labels in the current mask layer based on user input '''
         label_text = self.label_input.toPlainText()
         logger.info("Binarize button clicked.")
+        
+
         if not label_text:
             binarize_values = [1]  # Default to label 1
             logger.info("No label values provided; defaulting to label 1.")
@@ -892,6 +929,7 @@ class CustomWidget(QWidget):
             if isinstance(layer, napari.layers.Labels):
                 data = layer.data
                 binary_mask = np.isin(data, binarize_values).astype(np.uint8)
+                self.binarized_masks_per_image[self.current_image_index][self.current_rgb_idx] = binary_mask
                 self.viewer.add_labels(binary_mask, name=f"Binarized {layer.name}")
                 logger.info(f"Binarization applied successfully to {mask_layer_name}.")
             self.binarize_status_label.setText("Mask binarized. Find the binarized mask in the Layers menu.")
@@ -949,6 +987,4 @@ class CustomWidget(QWidget):
             self.masks_per_image[self.current_image_index][self.current_rgb_idx] = thresholded_masks.cpu()
             self.show_image_and_mask(self.current_image_index, self.current_rgb_idx)
             self.update_button_highlight(self.current_rgb_idx)
-            print(f"Threshold updated for image index {self.current_image_index}, pseudo-RGB index {self.current_rgb_idx}.")
-            logger.debug(f"Threshold updated for image index {self.current_image_index}, pseudo-RGB index {self.current_rgb_idx}.")
 
