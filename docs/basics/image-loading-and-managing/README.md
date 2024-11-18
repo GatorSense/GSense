@@ -2,7 +2,7 @@
 icon: file-import
 ---
 
-# Load images
+# Image loading and managing
 
 ### **Supported File Formats**:
 
@@ -18,9 +18,9 @@ icon: file-import
 3. Ensure `.hdr` files are present for `.dat` or `.raw` files (if not, the tool will prompt you to provide them).
 4. Navigate through the loaded batch of images using the `Previous Image` and `Next Image` buttons.
 
-{% hint style="info" %}
-Find more about how hyperspectral images are loaded [here](hyperspectral-images.md)
-{% endhint %}
+
+
+Find more detailed instructions on the next page.
 
 
 

@@ -4,7 +4,7 @@ Once the model is initialized, follow these steps to perform segmentation:
 
 **Prerequisites:**
 
-* Ensure you have [loaded images](../import/) (either RGB or hyperspectral).&#x20;
+* Ensure you have [loaded images](../image-loading-and-managing/) (either RGB or hyperspectral).&#x20;
 * Ensure you have generated pseudo-RGB images using the [markdown.md](../markdown.md "mention")tab.
 
 1.  **Run Segmentation**:
