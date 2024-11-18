@@ -336,7 +336,6 @@ class CustomWidget(QWidget):
             logger.warning(f"No pseudo-RGB images to update for image index {img_idx}.")
 
        
-                
     def create_pseudo_rgb_button(self, img_idx, rgb_idx):
         """Create a pseudo-RGB button and add right-click context menu."""
         button = QPushButton(f"Pseudo-RGB {img_idx + 1}-{rgb_idx + 1}", self)
@@ -356,6 +355,9 @@ class CustomWidget(QWidget):
         self.viewer.layers.clear()
         self.viewer.add_image(pseudo_rgb_image, rgb=True, name=f"Pseudo-RGB Image {img_idx + 1}-{rgb_idx + 1}")
         self.save_button.setEnabled(True)
+        
+        self.current_rgb_idx = rgb_idx
+        print(f"rgb button clicked: {rgb_idx}")
 
         # Enable the Image button to allow switching back to the actual image
         self.hsi_button.setVisible(True)
@@ -707,8 +709,6 @@ class CustomWidget(QWidget):
         # Update buttons for the current image index
         self.update_pseudo_rgb_buttons(self.current_image_index)
 
-
-
  
     ### SAM Model Settings
     def initialize_model(self):
@@ -949,4 +949,6 @@ class CustomWidget(QWidget):
             self.masks_per_image[self.current_image_index][self.current_rgb_idx] = thresholded_masks.cpu()
             self.show_image_and_mask(self.current_image_index, self.current_rgb_idx)
             self.update_button_highlight(self.current_rgb_idx)
+            print(f"Threshold updated for image index {self.current_image_index}, pseudo-RGB index {self.current_rgb_idx}.")
+            logger.debug(f"Threshold updated for image index {self.current_image_index}, pseudo-RGB index {self.current_rgb_idx}.")
 
