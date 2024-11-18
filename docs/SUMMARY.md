@@ -4,9 +4,9 @@
 
 ## Getting Started
 
-* [Installation](getting-started/quickstart.md)
-* [GSense Workflow](getting-started/gsense-workflow.md)
-* [GSense Features](getting-started/gsense-features.md)
+* [Installation](getting-started/installation.md)
+* [Workflow](getting-started/workflow.md)
+* [Features](getting-started/features.md)
 
 ## Basics
 

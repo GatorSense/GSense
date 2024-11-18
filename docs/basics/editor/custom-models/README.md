@@ -30,4 +30,5 @@ Load the custom model checkpoint by clicking on the `Load Custom Checkpoint` but
 * After loading the checkpoint, click the `Initialize Model` button.
 * A message box will confirm if the model initialization is successful.
 
-{% embed url="https://youtube.com/shorts/SRK0OvmwvYw?feature=share" fullWidth="false" %}
+
+

@@ -1,6 +1,6 @@
-# GSense Workflow
+# Workflow
 
-#### Using GSense involves following a workflow that utilizes its various functions.&#x20;
+Using GSense involves following a workflow that utilizes its various functions.&#x20;
 
 {% stepper %}
 {% step %}
@@ -13,6 +13,8 @@ Load a batch of RGB or hyperspectral images.
 ### [markdown.md](../basics/markdown.md "mention")
 
 Compute pseudo-RGB for hyperspectral data.
+
+{% embed url="https://youtu.be/paEhtIxgODE" %}
 {% endstep %}
 
 {% step %}
@@ -22,6 +24,8 @@ Segment images using Segment Anything Model (SAM) to get all masks.
 
 1. Initialize the segmentation model (default or custom).
 2. Run segmentation.
+
+{% embed url="https://youtu.be/uBdL8lptTIM" %}
 {% endstep %}
 
 {% step %}

@@ -13,17 +13,4 @@ GSense supports Vit-h, Vit-b SAM backbones and uses the hugging face transformer
 
 <figure><img src="../../.gitbook/assets/image (4) (1).png" alt="" width="360"><figcaption></figcaption></figure>
 
-### Usage
-
-#### **Prepare the Model for Segmentation**
-
-Segmentation in GSense requires initializing a segmentation model. You can choose between a **default checkpoint** or a **custom checkpoint**.
-
-
-
-
-
-
-
-#### **Run Image Segmentation**
-
+Segmentation in GSense requires initializing a segmentation model. You can choose between a [**default checkpoint**](default-models.md) or a [**custom checkpoint**](custom-models/).
