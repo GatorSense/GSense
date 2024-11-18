@@ -2,6 +2,25 @@
 icon: file-import
 ---
 
-# Import
+# Load images
 
-<figure><img src="../../.gitbook/assets/annotely_image (2).png" alt=""><figcaption></figcaption></figure>
+### **Supported File Formats**:
+
+* Hyperspectral: `.dat`, `.tif`, `.raw`
+* RGB: `.png`, `.jpg`, `.bmp`
+
+### **How to import images**:
+
+<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+1. Click the `Load Images` button in the main interface.
+2. Select one or multiple image files from your system.
+3. Ensure `.hdr` files are present for `.dat` or `.raw` files (if not, the tool will prompt you to provide them).
+4. Navigate through the loaded batch of images using the `Previous Image` and `Next Image` buttons.
+
+{% hint style="info" %}
+Find more about how hyperspectral images are loaded [here](hyperspectral-images.md)
+{% endhint %}
+
+
+
