@@ -36,7 +36,7 @@ Enter expressions in the Spectral Indexing tool and compute pseudo-RGB image to 
 
 Red channel: ch\[0]
 
-Green channel: ch\[2]
+Green channel: ch\[1]
 
-Blue channel: ch\[1]
+Blue channel: ch\[2]
 {% endhint %}

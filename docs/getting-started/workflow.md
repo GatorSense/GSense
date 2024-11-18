@@ -31,7 +31,7 @@ Segment images using Segment Anything Model (SAM) to get all masks.
 {% endstep %}
 
 {% step %}
-### [annotation](../basics/annotation/ "mention") (optional)
+### [annotation.md](../basics/annotation.md "mention") (optional)
 
 Refine masks using Napari's editing tools.
 {% endstep %}
