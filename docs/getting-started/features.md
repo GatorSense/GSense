@@ -5,7 +5,7 @@ description: >-
   binarization.
 ---
 
-# GSense Features
+# Features
 
 <figure><img src="../.gitbook/assets/image (5) (1).png" alt=""><figcaption></figcaption></figure>
 
@@ -13,7 +13,7 @@ description: >-
 
 <details>
 
-<summary><a data-mention href="../basics/markdown.md">markdown.md</a></summary>
+<summary><a data-mention href="../basics/spectral-indexing.md">spectral-indexing.md</a></summary>
 
 Lets you compute pseudo-RGB images from spectral bands by referencing them in mathematical expressions using channel indices.
 
@@ -33,7 +33,7 @@ Note: If an image in the loaded batch does not have the referenced channel data,
 
 <details>
 
-<summary><a data-mention href="../basics/editor/">editor</a></summary>
+<summary><a data-mention href="../basics/image-segmentation/">image-segmentation</a></summary>
 
 Segment generated pseudo-RGB images using Meta AI's Segment Anything Model. Choose your model type and default or custom fine-tuned checkpoint to run segmentation with.
 
