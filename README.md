@@ -118,8 +118,14 @@ Saving Layers
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for more details.
+This project is licensed under the GNU GPL 3.0 License. See the LICENSE file for more details.
 
 ## Contact
 
 If you have any questions or issues, feel free to open an issue on GitHub or contact us at ma.naikodi@ufl.edu.
+
+## References
+
+Sofroniew, N., Lambert, T., Bokota, G., Nunez-Iglesias, J., Sobolewski, P., Sweet, A., Gaifas, L., Evans, K., Burt, A., Doncila Pop, D., Yamauchi, K., Weber Mendonça, M., Buckley, G., Vierdag, W., Royer, L., Can Solak, A., Harrington, K. I. S., Ahlers, J., Althviz Moré, D., Amsalem, O., Anderson, A., Annex, A., Boone, P., Bragantini, J., Bussonnier, M., Caporal, C., Eglinger, J., Eisenbarth, A., Freeman, J., Gohlke, C., Gunalan, K., Har-Gil, H., Harfouche, M., Hilsenstein, V., Hutchings, K., Lauer, J., Lichtner, G., Liu, Z., Liu, L., Lowe, A., Marconato, L., Martin, S., McGovern, A., Migas, L., Miller, N., Muñoz, H., Müller, J., Nauroth-Kreß, C., Palecek, D., Pape, C., Perlman, E., Pevey, K., Peña-Castellanos, G., Pierré, A., Pinto, D., Rodríguez-Guerra, J., Ross, D., Russell, C. T., Ryan, J., Selzer, G., Smith, M., Smith, P., Sofiiuk, K., Soltwedel, J., Stansby, D., Vanaret, J., Wadhwa, P., Weigert, M., Windhager, J., Winston, P., & Zhao, R. napari: a multi-dimensional image viewer for Python [Computer software]. https://github.com/napari/napari
+
+Kirillov, A., Mintun, E., Ravi, N., Mao, H., Rolland, C., Gustafson, L., ... & Girshick, R. (2023). Segment anything. In Proceedings of the IEEE/CVF International Conference on Computer Vision (pp. 4015-4026).
