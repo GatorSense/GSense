@@ -157,7 +157,7 @@ class CustomWidget(QWidget):
         
         ######### Image Button #########
         self.hsi_button = QPushButton("Image data", self)
-        self.hsi_button.clicked.connect(self.show_hyperspectral_image)
+        self.hsi_button.clicked.connect(self.show_image_data)
         self.hsi_button.setEnabled(False)     # Disable until image(s) are loaded
         layout.addWidget(self.hsi_button, stretch=0)
                
@@ -249,7 +249,7 @@ class CustomWidget(QWidget):
             self.show_image_and_mask(self.current_image_index, 0)
             self.update_button_highlight(0) # highlight first pseudo RGB button of current image index
         else:
-            self.show_image(self.current_image_index)
+            self.show_image_data()
             self.update_button_highlight(None) # highlight "Image" button of current image index 
 
     def show_previous_image(self):
@@ -263,7 +263,7 @@ class CustomWidget(QWidget):
             self.show_image_and_mask(self.current_image_index, 0)
             self.update_button_highlight(0) # highlight first pseudo RGB button of current image index
         else:
-            self.show_image(self.current_image_index)
+            self.show_image_data()
             self.update_button_highlight(None) # highlight "Image" button of current image index 
 
             
@@ -295,7 +295,6 @@ class CustomWidget(QWidget):
         if 0 <= img_idx < len(self.pseudo_rgb_images_per_image):
             if 0 <= rgb_idx < len(self.pseudo_rgb_images_per_image[img_idx]):
                 del self.pseudo_rgb_images_per_image[img_idx][rgb_idx]
-
         # Remove pseudoRGB idx button 
         # Button numbers get updated after deletion (rgb_idx is not needed for this)
         self.update_pseudo_rgb_buttons(img_idx)
@@ -359,9 +358,6 @@ class CustomWidget(QWidget):
         
         pseudo_rgb_image = self.pseudo_rgb_images_per_image[img_idx][rgb_idx]
         self.save_current_pseudo_rgb_and_masks()
-
-        self.viewer.layers.clear()
-        self.viewer.add_image(pseudo_rgb_image, rgb=True, name=f"Pseudo RGB Image {img_idx + 1}-{rgb_idx + 1}")
         self.save_button.setEnabled(True)
 
         # Enable the Image button to allow switching back to the actual image
@@ -370,69 +366,48 @@ class CustomWidget(QWidget):
         
         # Update current rgb index
         self.current_rgb_idx = rgb_idx
-
+        
+        # If masks are present, show the pseudo RGB image and mask, else show pseudo RGB image
         if len(self.masks_per_image[img_idx]) > rgb_idx:
             self.show_image_and_mask(img_idx, rgb_idx)
-
-        self.update_button_highlight(rgb_idx)
-            
-            
-    def show_image(self, index):
-        ''' Display the image at the given index '''
-        ## This is to handle when index = 0 after loading the images
-        self.current_image_index = index
-        hyperspectral_image = self.images[index]
-
-        # Clear all layers in the viewer and display the current image
-        self.viewer.layers.clear()
-        self.viewer.add_image(hyperspectral_image, colormap='gray', name=f"Image {index+1}")
-        
-        # Adjust axes order for hyperspectral images
-        if hyperspectral_image.ndim == 3:  
-            self.viewer.dims.order = (2, 0, 1) # Hyperspectral 
         else:
-            self.viewer.dims.order = (0, 1, 2) # RGB image
-        
-        # Update the pseudo-RGB buttons for the current image
-        self.update_pseudo_rgb_buttons(index)
-
-        self.set_spectral_mixing_enabled(True)
-        self.save_button.setEnabled(False)
-        self.hsi_button.setEnabled(True)  
+            self.viewer.layers.clear()
+            self.viewer.add_image(pseudo_rgb_image, rgb=True, name=f"Pseudo RGB Image {img_idx + 1}-{rgb_idx + 1}")
+        self.update_button_highlight(rgb_idx)
+              
 
     def save_current_pseudo_rgb_and_masks(self):
         '''Save the current pseudo-RGB images, masks, and binarized mask layers before navigating to a new image.'''
-        
         for rgb_idx, _ in enumerate(self.pseudo_rgb_buttons):
             # names of pseudo-RGB, masks, and binarized layers
             pseudo_rgb_layer_name = f"Pseudo-RGB Image {self.current_image_index + 1}-{rgb_idx + 1}"
             mask_layer_name = f"Mask Layer {self.current_image_index + 1}-{rgb_idx + 1}"
             binarized_layer_name = f"Binarized {mask_layer_name}"
-
             for layer in self.viewer.layers:
                 if layer.name == pseudo_rgb_layer_name:
                     self.pseudo_rgb_images_per_image[self.current_image_index][rgb_idx] = layer.data
                 elif layer.name == mask_layer_name:
                     self.masks_per_image[self.current_image_index][rgb_idx] = layer.data
                 elif layer.name == binarized_layer_name:
-                    # print("saving binarized_layer of rgb idx: ", rgb_idx)
                     self.binarized_masks_per_image[self.current_image_index][rgb_idx] = layer.data
 
 
-    def show_hyperspectral_image(self):
-        ''' Display the hyperspectral image for the current image index '''
-        hyperspectral_image = self.images[self.current_image_index]
+    def show_image_data(self):
+        ''' Display the Image data for the current image index.
+        Called only when Image button is pressed.'''
+        image_data = self.images[self.current_image_index]
         self.viewer.layers.clear()
-        self.viewer.add_image(hyperspectral_image, colormap='gray', name="Image")
+        self.viewer.add_image(image_data, colormap='gray', name="Image")
         # Adjust axes order for hyperspectral images
-        if hyperspectral_image.ndim == 3:  
+        if image_data.ndim == 3:  
             self.viewer.dims.order = (2, 0, 1) # Hyperspectral 
         else:
             self.viewer.dims.order = (0, 1, 2) # RGB image
+        self.update_pseudo_rgb_buttons(self.current_image_index)
         self.save_button.setEnabled(False)
         self.set_spectral_mixing_enabled(True)
         self.update_button_highlight(None)
-    
+        self.hsi_button.setEnabled(True) 
     
     def show_image_and_mask(self, img_idx, rgb_idx):
         ''' Display the pseudo-RGB image and corresponding mask for the selected image and RGB index '''
@@ -568,8 +543,7 @@ class CustomWidget(QWidget):
             # User selects .hdr file for the .dat files that don't have them
             hdr_file_path = filedialog.askopenfilename(
                 title="Select the .hdr file to be used for .dat files without a corresponding .hdr file", 
-                filetypes=[("HDR files", "*.hdr")]
-            )
+                filetypes=[("HDR files", "*.hdr")])
             if hdr_file_path:
                 for file_path in dat_files_without_hdr:
                     try:
@@ -601,9 +575,9 @@ class CustomWidget(QWidget):
         self.binarized_masks_per_image = binarized_masks_per_image
         logger.info(f"Images loaded successfully: {len(result[1])} images.")
 
-        # Show the first image
         if len(self.images) > 0:
-            self.show_image(0)
+            self.current_image_index = 0
+            self.show_image_data()
             self.update_button_highlight(None)
 
         # Enable navigation buttons if more than one image is loaded
@@ -738,7 +712,7 @@ class CustomWidget(QWidget):
         print(f"Device: {device}")
         logger.info(f"Device: {device}")
         try:
-            if model_type == "vit-h":
+            if model_type == "ViT-huge":
                 if checkpoint_option is None or checkpoint_option == "default":
                     # print("Loading default vit-h model via pipeline...")
                     logger.info("Loading default vit-h model.")
@@ -752,7 +726,7 @@ class CustomWidget(QWidget):
                     self.model.load_state_dict(torch.load(checkpoint_option, weights_only=True))
                     self.model.to(device)
 
-            elif model_type == "vit-b":
+            elif model_type == "ViT-base":
                 if checkpoint_option is None or checkpoint_option == "default":
                     logger.info("Loading default vit-b model.")
                     self.mask_generator = pipeline("mask-generation", model="facebook/sam-vit-base", device=0)
@@ -899,7 +873,6 @@ class CustomWidget(QWidget):
         ''' Binarize the labels in the current mask layer based on user input '''
         label_text = self.label_input.toPlainText()
         logger.info("Binarize button clicked.")
-        
 
         if not label_text:
             binarize_values = [1]  # Default to label 1
