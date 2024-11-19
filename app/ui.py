@@ -302,6 +302,7 @@ class CustomWidget(QWidget):
         # Remove pseudoRGB idx button
         self.update_pseudo_rgb_buttons()
         self.viewer.layers.clear()
+        self.show_image_data()
         logger.info(f"Deleted {img_idx+1}-{rgb_idx+1}.")
 
     def delete_pseudo_rgb_for_all_images(self, rgb_idx):
@@ -312,6 +313,7 @@ class CustomWidget(QWidget):
                 del self.pseudo_rgb_images_per_image[idx][rgb_idx]
         self.update_pseudo_rgb_buttons()
         self.viewer.layers.clear()
+        self.show_image_data()
         logger.info(f"Deleted pseudo RGB {rgb_idx+1} for all images.")
         
     def update_pseudo_rgb_buttons(self):

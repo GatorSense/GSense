@@ -1,7 +1,7 @@
 import napari
 import numpy as np
 import torch
-from torch.nn.functional import threshold, normalize, interpolate
+from torch.nn.functional import interpolate
 from tkinter import filedialog
 from typing import Tuple
 from PIL import Image
