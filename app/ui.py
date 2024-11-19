@@ -612,7 +612,6 @@ class CustomWidget(QWidget):
         g_expr = self.g_input.text()
         b_expr = self.b_input.text()
 
-        # Check if any of the fields are empty
         if not r_expr or not g_expr or not b_expr:
             QMessageBox.warning(self, "Invalid Input", "Please fill all fields (Red, Green, and Blue expressions).")
             logger.warning(f"Invalid input. Missing input in field(s). Expressions entered. Red: {r_expr} ; Green: {g_expr} ; Blue: {b_expr}")
@@ -631,9 +630,7 @@ class CustomWidget(QWidget):
 
         # Create a worker object for computation
         self.worker = Worker(self.compute_pseudo_rgb_in_thread, r_expr, g_expr, b_expr)
-
-        # Move the worker to the thread
-        self.worker.moveToThread(self.thread)
+        self.worker.moveToThread(self.thread)    # Move the worker to the thread
 
         # Connect signals and slots
         self.thread.started.connect(self.worker.run)
@@ -645,7 +642,6 @@ class CustomWidget(QWidget):
         # Start the thread
         self.thread.start()
 
-
     
     def compute_pseudo_rgb_in_thread(self, r_expr, g_expr, b_expr):
         ''' Compute pseudo-RGB image in a separate thread '''
@@ -655,7 +651,6 @@ class CustomWidget(QWidget):
         for idx, hyperspectral_data in enumerate(self.images):
             num_channels = hyperspectral_data.shape[-1]
             channels = {i: hyperspectral_data[:, :, i] for i in range(num_channels)}
-            
             try:
                 # Validate expressions before computation
                 red_channel = compute_channel(channels, r_expr)

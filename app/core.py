@@ -5,6 +5,7 @@ from torch.nn.functional import threshold, normalize, interpolate
 from tkinter import filedialog
 from typing import Tuple
 from PIL import Image
+import os
 import imageio
 import warnings
 from qtpy.QtWidgets import QMessageBox
@@ -23,7 +24,6 @@ def validate_expression(expr):
     return re.match(pattern, expr.strip()) is not None
 
 
-# Function to normalize hyperspectral data
 def normalize_channel(channel):
     channel_min = np.min(channel)
     channel_max = np.max(channel)
@@ -126,7 +126,7 @@ def save_selected_layer(viewer):
             # print("Saving image")
             imageio.imwrite(file_path, data)
         print(f"Layer {layer.name} saved to {file_path}")
-        logger.info(f"Layer {layer.name} saved to '{file_path}'")
+        logger.info(f"Layer {layer.name} saved as'{os.path.basename(file_path)}'")  # Log only the filename
 
 # Save all layers function
 def save_all_layers(viewer):
@@ -147,4 +147,4 @@ def save_all_layers(viewer):
             print("Saving image")
             imageio.imwrite(file_path, data)
         print(f"Layer {layer.name} saved to '{file_path}'")
-        logger.info(f"Layer {layer.name} saved to '{file_path}'")
+        logger.info(f"Layer {layer.name} saved in \exports as '{os.path.basename(file_path)}'")
