@@ -73,21 +73,10 @@ or
 python -m app.main
 ```
 
-## Usage
-
-### Download custom model checkpoint for root segmentation and move to the 'ckpt' folder (Optional)
-
-GSense supports Vit-h, Vit-b SAM backbones and uses the hugging face transformers library. Downloading model checkpoints for default Vit-h and Vit-b weights is not necessary.
-
-To use a model checkpoint obtained from fine-tuning SAM Vit-b model with [peanut and sweetcorn root images](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/MAYDHT), download the custom checkpoint from below link and move it to the 'ckpt' folder.
-
-Download [Custom model checkpoint](https://uflorida-my.sharepoint.com/:u:/g/personal/ma_naikodi_ufl_edu/EQPiLVyRX3JJjba-COypQuYBItpvAA23xR4QWx3ZmqxI6A?e=llgAXU)
-
-Note: Make sure to choose 'Vit-b' model type from the dropdown field in the Model Settings tab when using the downloaded custom model checkpoint.
 
 ### Features and Instructions
 
-For a detailed how-to guide, refer to this [Documentation](https://gatorsense-uf.gitbook.io/gsense_how_to_guide)
+For a detailed how-to guide, refer to the [documentation](https://gatorsense-uf.gitbook.io/gsense_how_to_guide)
 
 Loading Images
 
@@ -102,9 +91,17 @@ Spectral Mixing
 
 Segmentation
 
-1. Configure the model type (ViT-H or ViT-B) and select the checkpoint.
+1. Configure the model type (ViT-huge or ViT-base) and select the checkpoint.
 2. Click Initialize Model to set up the segmentation model.
 3. Click Run Segmentation to segment the loaded images.
+
+GSense supports ViT-huge and ViT-base SAM backbones and uses the hugging face transformers library. Downloading model checkpoints for default Vit-h and Vit-b weights is not necessary.
+
+To use a model checkpoint obtained from fine-tuning SAM Vit-b model with [peanut and sweetcorn root images](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/MAYDHT), download the custom checkpoint from below link and move it to the 'ckpt' folder.
+
+Download [Custom model checkpoint](https://uflorida-my.sharepoint.com/:u:/g/personal/ma_naikodi_ufl_edu/EQPiLVyRX3JJjba-COypQuYBItpvAA23xR4QWx3ZmqxI6A?e=llgAXU)
+
+Note: Make sure to choose 'ViT-base' model type from the dropdown field in the Model Settings tab when using the downloaded custom model checkpoint.
 
 Binarization
 
@@ -113,8 +110,8 @@ Binarization
 
 Saving Layers
 
-1. Save Selected Layer: Click Save Selected to save the currently selected layer.
-2. Save All Layers: Click Save All to save all generated layers.
+1. Save Selected Layer: Click Save Selected to save the currently selected layer of selected pseudo RGB image.
+2. Save All Layers: Click Save All to save all layers of selected pseudo RGB image.
 
 ## License
 
