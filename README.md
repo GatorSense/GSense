@@ -82,7 +82,7 @@ Loading Images
 
 1. Click on the Load Images button.
 2. Select the image files you want to load.
-3. For DAT files without corresponding HDR files, select the HDR file when prompted.
+3. For DAT files without corresponding HDR files of the same filename, select the HDR file when prompted.
 
 Spectral Mixing
 
