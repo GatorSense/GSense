@@ -472,8 +472,9 @@ class CustomWidget(QWidget):
         ''' Load images from file dialog '''
         logger.info("User initiated image loading.")
         
-        # Open file dialog in the main thread
-        file_types = [("Image files","*.png;*.jpg;*.tif;*.bmp;*.raw;*.dat")]
+        # Dynamic file filter including "All files"
+        file_types = [("Image files", "*.png;*.jpg;*.tif;*.bmp;*.raw;*.dat"), 
+                  ("All files", "*.*")]
         file_paths = filedialog.askopenfilenames(filetypes=file_types)
 
         if not file_paths:
