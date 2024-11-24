@@ -73,27 +73,16 @@ or
 python -m app.main
 ```
 
-## Usage
-
-### Download custom model checkpoint for root segmentation and move to the 'ckpt' folder (Optional)
-
-GSense supports Vit-h, Vit-b SAM backbones and uses the hugging face transformers library. Downloading model checkpoints for default Vit-h and Vit-b weights is not necessary.
-
-To use a model checkpoint obtained from fine-tuning SAM Vit-b model with [peanut and sweetcorn root images](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/MAYDHT), download the custom checkpoint from below link and move it to the 'ckpt' folder.
-
-Download [Custom model checkpoint](https://uflorida-my.sharepoint.com/:u:/g/personal/ma_naikodi_ufl_edu/EQPiLVyRX3JJjba-COypQuYBItpvAA23xR4QWx3ZmqxI6A?e=llgAXU)
-
-Note: Make sure to choose 'Vit-b' model type from the dropdown field in the Model Settings tab when using the downloaded custom model checkpoint.
 
 ### Features and Instructions
 
-For a detailed how-to guide, refer to this [Documentation](https://gatorsense-uf.gitbook.io/gsense_how_to_guide)
+For a detailed how-to guide, refer to the [documentation](https://gatorsense-uf.gitbook.io/gsense_how_to_guide)
 
 Loading Images
 
 1. Click on the Load Images button.
 2. Select the image files you want to load.
-3. For DAT files without corresponding HDR files, select the HDR file when prompted.
+3. For DAT files without corresponding HDR files of the same filename, select the HDR file when prompted.
 
 Spectral Mixing
 
@@ -102,9 +91,17 @@ Spectral Mixing
 
 Segmentation
 
-1. Configure the model type (ViT-H or ViT-B) and select the checkpoint.
+1. Configure the model type (ViT-huge or ViT-base) and select the checkpoint.
 2. Click Initialize Model to set up the segmentation model.
 3. Click Run Segmentation to segment the loaded images.
+
+GSense supports ViT-huge and ViT-base SAM backbones and uses the hugging face transformers library. Downloading model checkpoints for default Vit-h and Vit-b weights is not necessary.
+
+To use a model checkpoint obtained from fine-tuning SAM Vit-b model with [peanut and sweetcorn root images](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/MAYDHT), download the custom checkpoint from below link and move it to the 'ckpt' folder.
+
+Download [Custom model checkpoint](https://uflorida-my.sharepoint.com/:u:/g/personal/ma_naikodi_ufl_edu/EQPiLVyRX3JJjba-COypQuYBItpvAA23xR4QWx3ZmqxI6A?e=llgAXU)
+
+Note: Make sure to choose 'ViT-base' model type from the dropdown field in the Model Settings tab when using the downloaded custom model checkpoint.
 
 Binarization
 
@@ -113,13 +110,21 @@ Binarization
 
 Saving Layers
 
-1. Save Selected Layer: Click Save Selected to save the currently selected layer.
-2. Save All Layers: Click Save All to save all generated layers.
+1. Save Selected Layer: Click Save Selected to save the currently selected layer of selected pseudo RGB image.
+2. Save All Layers: Click Save All to save all layers of selected pseudo RGB image.
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for more details.
+This project is licensed under the GNU GPL 3.0 License. See the LICENSE file for more details.
 
 ## Contact
 
 If you have any questions or issues, feel free to open an issue on GitHub or contact us at ma.naikodi@ufl.edu.
+
+## References
+
+Sofroniew, N., Lambert, T., Bokota, G., Nunez-Iglesias, J., Sobolewski, P., Sweet, A., Gaifas, L., Evans, K., Burt, A., Doncila Pop, D., Yamauchi, K., Weber Mendonça, M., Buckley, G., Vierdag, W., Royer, L., Can Solak, A., Harrington, K. I. S., Ahlers, J., Althviz Moré, D., Amsalem, O., Anderson, A., Annex, A., Boone, P., Bragantini, J., Bussonnier, M., Caporal, C., Eglinger, J., Eisenbarth, A., Freeman, J., Gohlke, C., Gunalan, K., Har-Gil, H., Harfouche, M., Hilsenstein, V., Hutchings, K., Lauer, J., Lichtner, G., Liu, Z., Liu, L., Lowe, A., Marconato, L., Martin, S., McGovern, A., Migas, L., Miller, N., Muñoz, H., Müller, J., Nauroth-Kreß, C., Palecek, D., Pape, C., Perlman, E., Pevey, K., Peña-Castellanos, G., Pierré, A., Pinto, D., Rodríguez-Guerra, J., Ross, D., Russell, C. T., Ryan, J., Selzer, G., Smith, M., Smith, P., Sofiiuk, K., Soltwedel, J., Stansby, D., Vanaret, J., Wadhwa, P., Weigert, M., Windhager, J., Winston, P., & Zhao, R. napari: a multi-dimensional image viewer for Python [Computer software]. https://github.com/napari/napari
+
+Kirillov, A., Mintun, E., Ravi, N., Mao, H., Rolland, C., Gustafson, L., ... & Girshick, R. (2023). Segment anything. In Proceedings of the IEEE/CVF International Conference on Computer Vision (pp. 4015-4026).
+
+Chang, S. J., Chowdhry, R., Song, Y., Mejia, T., Hampton, A., Kucharski, S., ... & Zare, A. (2024). HyperPRI: a dataset of hyperspectral images for underground plant root study. Computers and Electronics in Agriculture, 225, 109307.
