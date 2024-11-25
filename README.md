@@ -42,7 +42,7 @@ The tool provides functionality to load a batch of images (hyperspectral, multis
 
    ```bash
    cd GSense
-   pip install .
+   pip install -e .
    ```
 
 4. Install `torch` based on your system's GPU capability:
