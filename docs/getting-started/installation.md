@@ -50,7 +50,7 @@ conda activate gsense_env
 
 ```bash
 cd GSense
-pip install .
+pip install -e .
 ```
 
 #### Install `torch` based on your system's GPU capability:
