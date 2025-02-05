@@ -2,7 +2,8 @@ import napari
 import numpy as np
 import torch
 from torch.nn.functional import interpolate
-from tkinter import filedialog
+from qtpy.QtWidgets import QFileDialog
+from pathlib import Path
 from typing import Tuple
 from PIL import Image
 import os
@@ -105,6 +106,7 @@ def save_selected_layer(viewer):
     if not selected_layers:
         QMessageBox.warning(None, "Error", "No layer selected.")
         return
+    
     for layer in selected_layers:
         data = layer.data
         if isinstance(layer, napari.layers.Labels):
@@ -112,39 +114,38 @@ def save_selected_layer(viewer):
             max_val = data.max()
             if max_val > 0:  # Avoid division by zero
                 data = (data.astype(np.float32) / max_val * 255).astype(np.uint8)
-                file_path = filedialog.asksaveasfilename(defaultextension=".tif", filetypes=[("TIFF files", "*.tif")])
+                file_path = QFileDialog.getSaveFileName(None, "Save As", "", "TIFF files (*.tif)")[0]
                 if not file_path:
                     continue
+                file_path = Path(file_path)  # Ensure the path is platform independent
                 imageio.imwrite(file_path, data)
-                # print("Saving labels")
+                logger.info(f"Layer {layer.name} saved as '{file_path.name}'")  # Log only the filename
             else:
                 QMessageBox.warning(None, "Error", "Label layer has no valid labels.")
         else:
-            file_path = filedialog.asksaveasfilename(defaultextension=".tif", filetypes=[("TIFF files", "*.tif")])
+            file_path = QFileDialog.getSaveFileName(None, "Save As", "", "TIFF files (*.tif)")[0]
             if not file_path:
                 continue
-            # print("Saving image")
+            file_path = Path(file_path)  # Ensure the path is platform independent
             imageio.imwrite(file_path, data)
-        print(f"Layer {layer.name} saved to {file_path}")
-        logger.info(f"Layer {layer.name} saved as'{os.path.basename(file_path)}'")  # Log only the filename
+            logger.info(f"Layer {layer.name} saved as '{file_path.name}'")  # Log only the filename
+
 
 # Save all layers function
 def save_all_layers(viewer):
     logger.info("Saving all layers in viewer.")  
     for layer in viewer.layers:
         data = layer.data
-        file_path = f"exports/{layer.name}.tif"
+        file_path = Path(f"exports/{layer.name}.tif")  # Path for cross-platform compatibility
         if isinstance(layer, napari.layers.Labels):
             # Scale labels to 0-255
             max_val = data.max()
             if max_val > 0:  # Avoid division by zero
                 data = (data.astype(np.float32) / max_val * 255).astype(np.uint8)
                 imageio.imwrite(file_path, data)
-                print("Saving labels")
+                logger.info(f"Layer {layer.name} saved to '{file_path}'")
             else:
                 print(f"Label layer {layer.name} has no valid labels.")
         else:
-            print("Saving image")
             imageio.imwrite(file_path, data)
-        print(f"Layer {layer.name} saved to '{file_path}'")
-        logger.info(f"Layer {layer.name} saved in \exports as '{os.path.basename(file_path)}'")
+            logger.info(f"Layer {layer.name} saved to '{file_path}'")

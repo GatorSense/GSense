@@ -2,7 +2,7 @@ import napari
 import numpy as np
 import torch
 from torch.nn.functional import threshold, normalize
-from tkinter import filedialog
+from qtpy.QtWidgets import QFileDialog
 from skimage import io
 from qtpy.QtWidgets import QWidget, QStyle, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QComboBox, QMenu, QCheckBox, QSlider, QTabWidget
 from qtpy.QtWidgets import QVBoxLayout, QLineEdit,QPlainTextEdit
@@ -472,11 +472,12 @@ class CustomWidget(QWidget):
         ''' Load images from file dialog '''
         logger.info("User initiated image loading.")
         
-        # Dynamic file filter including "All files"
-        file_types = [("Image files", "*.png;*.jpg;*.tif;*.bmp;*.raw;*.dat"), 
-                  ("All files", "*.*")]
-        file_paths = filedialog.askopenfilenames(filetypes=file_types)
+        
+        # Initialize file dialog
+        file_dialog = QFileDialog()
+        file_paths, _ = file_dialog.getOpenFileNames(file_dialog,"Select Files","","Image files (*.png *.jpg *.tif *.bmp *.raw *.dat);;All files (*.*)")
 
+ 
         if not file_paths:
             QMessageBox.warning(self, "No files selected", "Please select one or more image files.")
             return
@@ -555,9 +556,8 @@ class CustomWidget(QWidget):
         dat_files_without_hdr, images, pseudo_rgb_images_per_image, masks_per_image, binarized_masks_per_image = result
 
         if dat_files_without_hdr:
-            hdr_file_path = filedialog.askopenfilename(
-                title="Select the .hdr file to be used for .dat files without a corresponding .hdr file", 
-                filetypes=[("HDR files", "*.hdr;*.HDR")])  
+            file_dialog = QFileDialog()
+            hdr_file_path, _ = file_dialog.getOpenFileName(file_dialog,"Select the .hdr file to be used for .dat files without a corresponding .hdr file","","HDR files(*.hdr *.HDR)") 
             if hdr_file_path:
                 for file_path in dat_files_without_hdr:
                     try:
@@ -760,7 +760,8 @@ class CustomWidget(QWidget):
 
     def load_custom_checkpoint(self):
         ''' Load a custom checkpoint file for the model '''
-        file_path = filedialog.askopenfilename(filetypes=[("Checkpoint files", "*.pth")])
+        file_dialog = QFileDialog()
+        file_path, _ = file_dialog.getOpenFileName(file_dialog,"Select model checkpoint file","","Checkpoint files (*.pth)")
         if file_path:
             self.checkpoint_combo.addItem(f"Custom Checkpoint: {file_path}", userData=file_path)
             self.checkpoint_combo.setCurrentIndex(self.checkpoint_combo.count() - 1)

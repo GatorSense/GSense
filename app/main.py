@@ -1,28 +1,25 @@
 import napari
-from tkinter import Tk
 from qtpy.QtWidgets import QDockWidget
 from qtpy import QtGui
 from app.ui import CustomWidget
-import os
+from pathlib import Path
 
 def main():
-    root = Tk()
-    root.withdraw()
-
     # Initialize the viewer
     viewer = napari.Viewer()
-    
-    project_root = os.path.dirname(os.path.abspath(__file__))
-    logo_path = os.path.join(project_root, 'assets', 'logo2.png')
-    bg_logo_path = os.path.join(project_root, 'assets', 'logo.png')
-    
-    if os.path.exists(bg_logo_path):
-        viewer.open(bg_logo_path, rgb=True, name='Logo')
+
+    project_root = Path(__file__).resolve().parent.parent  
+    logo_path = project_root / 'assets' / 'logo2.png'
+    bg_logo_path = project_root / 'assets' / 'logo.png'
+
+    print("Project root:", project_root)
+    print(f"Looking for logo at: {bg_logo_path}")
+
+    if bg_logo_path.exists():
+        viewer.open(str(bg_logo_path), rgb=True, name='Logo')
     else:
-        # print("Logo image not found at:", bg_logo_path)
         print("Logo image not found at:", bg_logo_path)
         viewer.text_overlay.text = "Welcome to GSense"
-
 
     # Add Save Selected Layer button to the layer list dock widget
     layer_list_dock = viewer.window._qt_window.findChild(QDockWidget, "layer list")
@@ -33,7 +30,9 @@ def main():
     layer_controls_dock.setVisible(False)
 
     viewer.window._qt_window.setWindowTitle("GSense")
-    viewer.window._qt_window.setWindowIcon(QtGui.QIcon(logo_path))
+
+    # Set the window icon
+    viewer.window._qt_window.setWindowIcon(QtGui.QIcon(str(logo_path)))
 
     # Add custom widget for batch image loading, spectral mixing, and segmentation
     channel_selection_widget = CustomWidget(viewer, layer_list_dock, layer_controls_dock)
