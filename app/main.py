@@ -12,7 +12,7 @@ def main():
     # Initialize the viewer
     viewer = napari.Viewer()
     
-    project_root = os.path.dirname(os.path.dirname(__file__))
+    project_root = os.path.dirname(os.path.abspath(__file__))
     logo_path = os.path.join(project_root, 'assets', 'logo2.png')
     bg_logo_path = os.path.join(project_root, 'assets', 'logo.png')
 
@@ -22,7 +22,7 @@ def main():
     else:
         # print("Logo image not found at:", bg_logo_path)
         print("Logo image not found at:", bg_logo_path)
-        viewer.add_text("Welcome to GSense", position=(0, 0), color='white', size=24)
+        viewer.text_overlay.text = "Welcome to GSense"
 
     # Add Save Selected Layer button to the layer list dock widget
     layer_list_dock = viewer.window._qt_window.findChild(QDockWidget, "layer list")
