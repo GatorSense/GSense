@@ -509,7 +509,7 @@ class CustomWidget(QWidget):
         for file_path in file_paths:
             # Extract just the file name and extension, avoiding the full path
             file_name = os.path.basename(file_path)
-            file_extension = os.path.splitext(file_path)[1]
+            file_extension = os.path.splitext(file_path)[1].lower()
             logger.info(f"Processing file: {file_name} (Format: {file_extension})")
 
             if file_extension == '.raw':
@@ -519,15 +519,20 @@ class CustomWidget(QWidget):
                 hyperspectral_data = io.imread(tiff_file)
                 images.append(hyperspectral_data)
             elif file_extension == '.dat':
-                hdr_file_path = file_path.replace('.dat', '.hdr')
-                if not os.path.exists(hdr_file_path):
+                hdr_file_path_lower = file_path.replace('.dat', '.hdr')  
+                hdr_file_path_upper = file_path.replace('.dat', '.HDR') 
+                
+                # Check if either exists
+                if not os.path.exists(hdr_file_path_lower) and not os.path.exists(hdr_file_path_upper):
                     logger.warning(f"No corresponding .hdr file found for {file_name}.")
                     dat_files_without_hdr.append(file_path)
                 else:
+                    # Use the one that exists
+                    hdr_file_path = hdr_file_path_lower if os.path.exists(hdr_file_path_lower) else hdr_file_path_upper
                     logger.info(f"Detected .dat file with existing .hdr: {os.path.basename(hdr_file_path)}")
                     hsi_image = open_image(hdr_file_path)
                     hyperspectral_data = hsi_image.load().astype(np.float32)
-                    images.append(hyperspectral_data)
+                    images.append(hyperspectral_data)   
             else:
                 logger.info(f"Loading standard image format: {file_extension}")
                 hyperspectral_data = io.imread(file_path)
@@ -543,22 +548,22 @@ class CustomWidget(QWidget):
             binarized_masks_per_image = [[] for _ in range(len(self.images))]
 
         return None, images, pseudo_rgb_images_per_image, masks_per_image, binarized_masks_per_image
-
-
+    
+    
     def handle_images_loaded(self, result):
         ''' Handle the result of image loading '''
         dat_files_without_hdr, images, pseudo_rgb_images_per_image, masks_per_image, binarized_masks_per_image = result
 
         if dat_files_without_hdr:
-            # User selects .hdr file for the .dat files that don't have them
             hdr_file_path = filedialog.askopenfilename(
                 title="Select the .hdr file to be used for .dat files without a corresponding .hdr file", 
-                filetypes=[("HDR files", "*.hdr")])
+                filetypes=[("HDR files", "*.hdr;*.HDR")])  
             if hdr_file_path:
                 for file_path in dat_files_without_hdr:
                     try:
                         temp_hdr_path = file_path.replace('.dat', '.hdr')
                         shutil.copy(hdr_file_path, temp_hdr_path)
+                        logger.info(f"Copied .hdr file to {temp_hdr_path} for {file_path}.")
 
                         hsi_image = open_image(temp_hdr_path)
                         hyperspectral_data = hsi_image.load().astype(np.float32)
@@ -566,12 +571,14 @@ class CustomWidget(QWidget):
 
                         # Remove temporary .hdr file
                         os.remove(temp_hdr_path)
+                        logger.info(f"Temporary .hdr file removed: {temp_hdr_path}")
                     except Exception as e:
-                        print(f"Error processing file {file_path}: {e}")
+                        logger.error(f"Error processing file {file_path}: {e}")
             else:
                 QMessageBox.warning(self, "No .hdr file selected", "Some .dat files were skipped.")
-                return
-        
+                return  # Exit the function since required .hdr files were not provided
+
+        # Ensure all containers are initialized properly
         if pseudo_rgb_images_per_image is None:
             pseudo_rgb_images_per_image = [[] for _ in range(len(images))]
         if masks_per_image is None:
@@ -579,24 +586,23 @@ class CustomWidget(QWidget):
         if binarized_masks_per_image is None:
             binarized_masks_per_image = [[] for _ in range(len(images))]
 
+        # Update instance variables with the loaded data
         self.images = images
         self.pseudo_rgb_images_per_image = pseudo_rgb_images_per_image
         self.masks_per_image = masks_per_image
         self.binarized_masks_per_image = binarized_masks_per_image
-        logger.info(f"Images loaded successfully: {len(result[1])} images.")
+        logger.info(f"Images loaded successfully: {len(self.images)} images.")
 
+        # Handle image display and navigation button updates
         if len(self.images) > 0:
             self.current_image_index = 0
             self.show_image_data()
             self.update_button_highlight(None)
 
         # Enable navigation buttons if more than one image is loaded
-        if len(self.images) > 1:
-            self.previous_button.setEnabled(True)
-            self.next_button.setEnabled(True)
-        else:
-            self.previous_button.setEnabled(False)
-            self.next_button.setEnabled(False)
+        self.previous_button.setEnabled(len(self.images) > 1)
+        self.next_button.setEnabled(len(self.images) > 1)
+
 
     def handle_loading_error(self, error_msg):
         ''' Handle errors that occur during image loading '''
